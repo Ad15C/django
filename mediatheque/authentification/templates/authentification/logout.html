@@ -1,10 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'base.html' %}
 
-</body>
-</html>
+{% block content %}
+<div class="container">
+    <h1>Déconnexion réussie</h1>
+    <p>Vous avez été déconnecté avec succès.</p>
+    <p><a href="{% url 'authentification:login' %}">Retour à la page de connexion</a></p>
+</div>
+{% endblock %}
