@@ -14,16 +14,17 @@
 </ul>
 
 <h3>Vos emprunts :</h3>
-{% if emp %}
+{% if message %}
+<p>{{ message }}</p>  <!-- Afficher le message s'il existe -->
+{% else %}
 <ul>
-    {% for reservation in reservations %}
-    <li>{{ reservation.book.title }} - {{ reservation.reservation_date|date:"d M Y" }}</li>
+    {% for borrow in borrows %}
+    <li>{{ borrow.media.name }}</li>  <!-- Afficher les emprunts actifs -->
     {% endfor %}
 </ul>
-{% else %}
-<p>Aucune réservation en cours.</p>
 {% endif %}
 
-<p><a href="{% url 'modifier_profil' %}">Modifier mon profil</a></p>
+<p><a href="{% url 'authentification:modifier_profil' user_id=user.id %}">Modifier mon profil</a>
+</p>
 
 {% endblock %}
