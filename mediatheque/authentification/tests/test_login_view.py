@@ -83,6 +83,6 @@ def test_login_redirect_for_admin_user():
     client = Client()
     response = client.post(reverse('authentification:connexion'), {'username': 'adminuser', 'password': 'password123'})
 
-    # Vérifier la redirection vers la page d'accueil (par défaut)
+    # Vérifier la redirection vers l'interface d'administration
     assert response.status_code == 302
-    assert response.url == reverse('authentification:home')
+    assert response.url == '/admin/'

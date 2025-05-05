@@ -125,12 +125,15 @@ def test_edit_profile_no_password_change(client, user):
 
 @pytest.mark.django_db
 def test_edit_profile_not_logged_in(client, user):
-    """Test pour vérifier qu'un utilisateur non connecté est redirigé vers la connexion"""
-    # Accéder à la page de modification de profil sans être connecté
+    """
+    Test pour vérifier qu'un utilisateur non connecté est redirigé vers la page de connexion personnalisée.
+    """
     url = reverse('authentification:modifier_profil', args=[user.id])
     response = client.get(url)
 
-    # Vérifier que l'utilisateur est redirigé vers la page de connexion avec le paramètre next
+    # La redirection doit pointer vers l'URL de connexion définie dans les URLs comme 'authentification:connexion'
+    login_url = reverse('authentification:connexion')
+    expected_redirect_url = f"{login_url}?next={url}"
+
     assert response.status_code == 302
-    assert '/auth/login/?next=' in response.url  # Vérifie que la redirection contient le paramètre `next`
-    assert f'/auth/modifier_profil/{user.id}/' in response.url  # Vérifie que le `next` est correct
+    assert response.url == expected_redirect_url
