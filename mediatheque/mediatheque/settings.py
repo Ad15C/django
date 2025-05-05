@@ -122,9 +122,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'authentification.CustomUser'
 
-LOGIN_URL = '/auth/login/'
+LOGIN_URL = 'authentification:connexion'
 # Où aller après connexion réussie
-LOGIN_REDIRECT_URL = '/auth/redirect/'
+LOGIN_REDIRECT_URL = 'authentification:home'
 
 # Où aller après déconnexion
-LOGOUT_REDIRECT_URL = '/auth/login/'
+LOGOUT_REDIRECT_URL = 'authentification:connexion'

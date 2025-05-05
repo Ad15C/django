@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+medias = MediaStaff.objects.filter(available=True)
+borrowable_medias = [media for media in medias if media.is_borrowable_by(request.user)]
+
+</body>
+</html>

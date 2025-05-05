@@ -1,63 +1,43 @@
 {% extends 'base.html' %}
 
-{% block title %}Espace Staff{% endblock %}
-
 {% block content %}
-<h2>Bienvenue dans l'espace du personnel de la Médiathèque {{ user.username }} !</h2>
+<h1>Tableau de bord du Personnel de la Médiathèque</h1>
 
-<p>Voici les emprunts en cours :</p>
-
-{% if borrowings %}
+<h2>Emprunts en cours</h2>
 <ul>
-    {% for borrowing in borrowings %}
-    <li>
-        <strong>{{ borrowing.user.username }}</strong> a emprunté <strong>{{ borrowing.media.title }}</strong><br>
-        Date d'emprunt : {{ borrowing.borrow_date|date:"d M Y" }}<br>
-        Date limite de retour : {{ borrowing.due_date|date:"d M Y" }}<br>
-        {% if borrowing.returned %}
-        <span style="color: green;">Retourné</span>
-        {% else %}
-        <span style="color: red;">Non retourné</span>
-        {% endif %}
-    </li>
+    {% if current_borrows %}
+    {% for borrow in current_borrows %}
+    <li>{{ borrow.media.name }} - Date de retour prévue : {{ borrow.due_date }}</li>
     {% endfor %}
+    {% else %}
+    <li>Aucun emprunt en cours.</li>
+    {% endif %}
 </ul>
-{% else %}
-<p>Aucun emprunt en cours.</p>
-{% endif %}
 
-<h3>Emprunts en retard :</h3>
-{% if overdue_borrowings %}
+<h2>Emprunts en retard</h2>
+{% if overdue_borrows %}
 <ul>
-    {% for borrowing in overdue_borrowings %}
-    <li>
-        <strong>{{ borrowing.user.username }}</strong> a emprunté <strong>{{ borrowing.media.title }}</strong><br>
-        Date d'emprunt : {{ borrowing.borrow_date|date:"d M Y" }}<br>
-        Date limite de retour : {{ borrowing.due_date|date:"d M Y" }}<br>
-        <span style="color: red;">En retard</span>
+    {% for borrow in overdue_borrows %}
+    {% if borrow.media.can_borrow %}
+    <li>{{ borrow.media.name }} ({{ borrow.media.media_type }}) - Emprunté par : {{ borrow.user.username }} - En retard
+        de {{ borrow.due_date|timesince }}
     </li>
+    {% endif %}
     {% endfor %}
 </ul>
 {% else %}
 <p>Aucun emprunt en retard.</p>
 {% endif %}
 
-<h3>Tous les médias :</h3>
-{% if all_media %}
+<h2>Tous les médias</h2>
 <ul>
     {% for media in all_media %}
     <li>
-        <strong>{{ media.title }}</strong><br>
-        {{ media.get_media_type_display }}<br>
+        {{ media.name }} - Type : {{ media.media_type }} - Disponible : {{ media.available }}
         {% if media.can_borrow %}
-        <a href="{% url 'borrow_media' media.id %}">Emprunter</a>
-        {% else %}
-        <span style="color: gray;">Non empruntable</span>
+        - <a href="{% url 'staff:emprunter' media.id %}">Emprunter</a>
         {% endif %}
     </li>
     {% endfor %}
 </ul>
-{% else %}
-<p>Aucun média disponible.</p>
-{% endif %}
 {% endblock %}

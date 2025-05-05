@@ -16,13 +16,13 @@
             {% else %}
             <li><a href="{% url 'authentification:espace_client' %}">Espace des Membres</a></li>
             {% endif %}
-            <li><a href="{% url 'authentification:logout' %}">Déconnexion</a></li>
+            <li><a href="{% url 'authentification:deconnexion' %}">Déconnexion</a></li>
         </ul>
         {% else %}
         <ul>
             <li><a href="{% url 'authentification:home' %}">Accueil</a></li>  <!-- Home -->
-            <li><a href="{% url 'authentification:login' %}">Connexion</a></li>
-            <li><a href="{% url 'authentification:signup' %}">Inscription</a></li>
+            <li><a href="{% url 'authentification:connexion' %}">Connexion</a></li>
+            <li><a href="{% url 'authentification:inscription' %}">Inscription</a></li>
         </ul>
         {% endif %}
     </nav>

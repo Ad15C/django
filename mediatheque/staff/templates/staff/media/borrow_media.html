@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block title %}Emprunter un Média{% endblock %}
+
+{% block content %}
+<h2>Emprunter un Média</h2>
+
+{% if media.can_borrow %}
+<p><strong>{{ media.name }}</strong> est disponible à l'emprunt.</p>
+<p>Type de média : {{ media.media_type }}</p>
+<p>Êtes-vous sûr de vouloir emprunter ce média ?</p>
+
+<form method="post">
+    {% csrf_token %}
+    <button type="submit">Emprunter</button>
+</form>
+
+{% else %}
+<p>Désolé, ce média ne peut pas être emprunté pour le moment.</p>
+{% endif %}
+
+<p><a href="{% url 'authentification:espace_staff' %}">Retour à l'espace du personnel</a></p>
+{% endblock %}

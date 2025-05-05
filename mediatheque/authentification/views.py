@@ -4,21 +4,20 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .forms import CustomUserCreationForm, LoginForm, EditProfileForm
 from django.utils import timezone
-from staff.models import StaffBorrowItem, MediaStaff
+from staff.models import MediaStaff, StaffBorrowItem
 from django.contrib.auth import get_user_model
 from functools import wraps
 
 User = get_user_model()
 
 
-# Décorateur pour vérifier le rôle
 def role_required(role):
     def decorator(view_func):
         @wraps(view_func)
         def _wrapped_view(request, *args, **kwargs):
             if request.user.role != role:
                 messages.error(request, "Vous n'avez pas l'autorisation d'accéder à cette page.")
-                return redirect('home')
+                return redirect('authentification:home')
             return view_func(request, *args, **kwargs)
 
         return _wrapped_view
@@ -31,7 +30,6 @@ def home_view(request):
     return render(request, 'authentification/home.html')
 
 
-# Inscription
 def signup_view(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
@@ -39,18 +37,16 @@ def signup_view(request):
             user = form.save()
             login(request, user)
             messages.success(request, "Inscription réussie ! Vous êtes maintenant connecté.")
-            return redirect('home')
+            return redirect('authentification:home')
         else:
             for field, errors in form.errors.items():
                 for error in errors:
                     messages.error(request, f"Erreur sur {field}: {error}")
     else:
         form = CustomUserCreationForm()
-
     return render(request, 'authentification/signup.html', {'form': form})
 
 
-# Connexion
 def login_view(request):
     if request.method == 'POST':
         form = LoginForm(request.POST)
@@ -61,77 +57,83 @@ def login_view(request):
             if user is not None:
                 login(request, user)
                 messages.success(request, "Vous êtes connecté avec succès.")
-                if user.role == User.STAFF:
-                    return redirect('espace_staff')
-                elif user.role == User.CLIENT:
-                    return redirect('espace_client')
-                else:
-                    return redirect('home')
+                return login_redirect_view(request)
             else:
                 messages.error(request, "Nom d'utilisateur ou mot de passe incorrect.")
     else:
         form = LoginForm()
-
     return render(request, 'authentification/login.html', {'form': form})
 
 
-# Déconnexion
 def logout_view(request):
     logout(request)
     messages.success(request, "Vous êtes maintenant déconnecté.")
-    return redirect('login')
+    return redirect('authentification:connexion')
 
 
-# Mise à jour du profil
 @login_required
-def edit_profile(request):
-    user = request.user
+def edit_profile(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+
+    # Vérifier si l'utilisateur modifie son propre profil ou est admin
+    if request.user != user and request.user.role != User.ADMIN:
+        messages.error(request, "Accès interdit.")
+        return redirect('authentification:home')
+
     if request.method == "POST":
         form = EditProfileForm(request.POST, instance=user)
         if form.is_valid():
             form.save()
-            return redirect('profile')  # Redirige vers une page de profil après modification
+            messages.success(request, "Profil mis à jour avec succès.")
+            return redirect('authentification:modifier_profil', user_id=user.id)
     else:
         form = EditProfileForm(instance=user)
 
-    return render(request, 'edit_profile.html', {'form': form})
+    return render(request, 'authentification/edit_profile.html', {'form': form})
 
-# Espace client
+
 @login_required
 @role_required(User.CLIENT)
 def client_dashboard(request):
     borrows = StaffBorrowItem.objects.filter(user=request.user, is_returned=False).select_related('media')
-    available_media = MediaStaff.objects.filter(can_borrow=True, available=True)
+    message = None if borrows.exists() else 'Aucune réservation en cours.'
+    available_media = MediaStaff.get_borrowable_by(request.user)
 
-    return render(request, "authentification/espace_client.html", {
+    return render(request, "authentification/client_dashboard.html", {
         'borrows': borrows,
-        'available_media': available_media
+        'available_media': available_media,
+        'message': message
     })
 
 
-# Espace staff
 @login_required
 @role_required(User.STAFF)
 def staff_dashboard(request):
-    borrows = StaffBorrowItem.objects.filter(is_returned=False).select_related('media')
-    overdue_borrows = StaffBorrowItem.objects.filter(is_returned=False, due_date__lt=timezone.now()).select_related(
-        'media')
-    all_media = MediaStaff.objects.all()
+    user = request.user
+    current_borrows = StaffBorrowItem.objects.filter(
+        user=user,
+        is_returned=False,
+        due_date__gte=timezone.now()
+    ).exclude(media__can_borrow=False)
 
-    return render(request, "authentification/espace_staff.html", {
-        'borrows': borrows,
+    overdue_borrows = StaffBorrowItem.objects.filter(
+        user=user,
+        is_returned=False,
+        due_date__lt=timezone.now()
+    ).exclude(media__can_borrow=False)
+
+    return render(request, 'authentification/staff_dashboard.html', {
+        'current_borrows': current_borrows,
         'overdue_borrows': overdue_borrows,
-        'all_media': all_media
     })
 
 
-# Redirection après login
 @login_required
 def login_redirect_view(request):
     if request.user.role == User.ADMIN:
-        return redirect('/admin/')  # Ou reverse('admin:index')
+        return redirect('/admin/')
     elif request.user.role == User.STAFF:
-        return redirect('espace_staff')
+        return redirect('authentification:espace_staff')
     elif request.user.role == User.CLIENT:
-        return redirect('espace_client')
-    return redirect('home')
+        return redirect('authentification:espace_client')
+    return redirect('authentification:home')
