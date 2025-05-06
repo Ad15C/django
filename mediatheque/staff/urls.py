@@ -1,9 +1,11 @@
 from django.urls import path
+from authentification.views import staff_dashboard
 from .views import media_views
 
 app_name = 'staff'
 
 urlpatterns = [
+    path('espace_staff/', staff_dashboard, name='espace_staff'),
     # Médias
     path('media/liste/', media_views.media_list, name='media_liste'),
     path('media/<int:pk>/', media_views.media_detail, name='media_detail'),
