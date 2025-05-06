@@ -8,25 +8,24 @@
 <body>
 <header>
     <nav>
-        {% if user.is_authenticated %}
         <ul>
             <li><a href="{% url 'authentification:home' %}">Accueil</a></li>  <!-- Home -->
+
+            {% if user.is_authenticated %}
             {% if user.role == 'staff' %}
-            <li><a href="{% url 'authentification:espace_staff' %}">Espace du Personnel</a></li>
-            {% else %}
-            <li><a href="{% url 'authentification:espace_client' %}">Espace des Membres</a></li>
+            <li><a href="{% url 'authentification:espace_staff' %}">Espace des Membres</a></li>
+            {% elif user.role == 'client' %}
+            <li><a href="{% url 'authentification:espace_client' %}">Espace du Personnel</a></li>
             {% endif %}
             <li><a href="{% url 'authentification:deconnexion' %}">Déconnexion</a></li>
-        </ul>
-        {% else %}
-        <ul>
-            <li><a href="{% url 'authentification:home' %}">Accueil</a></li>  <!-- Home -->
+            {% else %}
             <li><a href="{% url 'authentification:connexion' %}">Connexion</a></li>
             <li><a href="{% url 'authentification:inscription' %}">Inscription</a></li>
+            {% endif %}
         </ul>
-        {% endif %}
     </nav>
 </header>
+
 
 <div class="container">
     {% if messages %}

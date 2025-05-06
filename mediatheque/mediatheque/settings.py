@@ -128,3 +128,6 @@ LOGIN_REDIRECT_URL = 'authentification:home'
 
 # Où aller après déconnexion
 LOGOUT_REDIRECT_URL = 'authentification:connexion'
+
+CSRF_COOKIE_SECURE = False  # Si tu es en développement (True si en production avec HTTPS)
+CSRF_COOKIE_HTTPONLY = True

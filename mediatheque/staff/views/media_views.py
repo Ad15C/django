@@ -6,8 +6,15 @@ from django.utils import timezone
 from staff.models import MediaStaff, StaffBorrowItem, BoardGameStaff
 from staff.forms import MediaForm, BoardGameForm
 from django.core.paginator import Paginator
+from django.http import HttpResponseForbidden
 
 MAX_BORROW_DURATION_DAYS = 7
+
+
+def staff_dashboard(request):
+    if not request.user.is_staff_user:
+        return HttpResponseForbidden("Vous n'êtes pas autorisé à voir cette page.")
+    return render(request, 'authentification/staff_dashboard.html')
 
 
 @permission_required('authentification.can_add_media', raise_exception=True)
