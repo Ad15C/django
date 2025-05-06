@@ -7,6 +7,7 @@ from django.utils import timezone
 from staff.models import MediaStaff, StaffBorrowItem
 from django.contrib.auth import get_user_model
 from functools import wraps
+from django.core.paginator import Paginator
 
 User = get_user_model()
 
@@ -122,9 +123,15 @@ def staff_dashboard(request):
         due_date__lt=timezone.now()
     ).exclude(media__can_borrow=False)
 
+    all_media = MediaStaff.objects.all().order_by('name')  # Tri des médias par nom
+    paginator = Paginator(all_media, 10)  # 10 médias par page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
     return render(request, 'authentification/staff_dashboard.html', {
         'current_borrows': current_borrows,
         'overdue_borrows': overdue_borrows,
+        'page_obj': page_obj,  # Passe l'objet de pagination au template
     })
 
 

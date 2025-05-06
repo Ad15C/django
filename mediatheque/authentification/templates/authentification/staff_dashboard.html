@@ -1,13 +1,16 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1>Tableau de bord du Personnel de la Médiathèque</h1>
+<h1>Espace du Personnel de la Médiathèque</h1>
 
 <h2>Emprunts en cours</h2>
 <ul>
     {% if current_borrows %}
     {% for borrow in current_borrows %}
-    <li>{{ borrow.media.name }} - Date de retour prévue : {{ borrow.due_date }}</li>
+    <li>
+        {{ borrow.media.name }} - Type : {{ borrow.media.media_type }} -
+        Date de retour prévue : {{ borrow.due_date }} - Emprunté par : {{ borrow.user.username }}
+    </li>
     {% endfor %}
     {% else %}
     <li>Aucun emprunt en cours.</li>
@@ -19,8 +22,10 @@
 <ul>
     {% for borrow in overdue_borrows %}
     {% if borrow.media.can_borrow %}
-    <li>{{ borrow.media.name }} ({{ borrow.media.media_type }}) - Emprunté par : {{ borrow.user.username }} - En retard
-        de {{ borrow.due_date|timesince }}
+    <li>
+        {{ borrow.media.name }} ({{ borrow.media.media_type }}) -
+        Emprunté par : {{ borrow.user.username }} -
+        En retard de {{ borrow.due_date|timesince }} (due date: {{ borrow.due_date }})
     </li>
     {% endif %}
     {% endfor %}
@@ -31,13 +36,32 @@
 
 <h2>Tous les médias</h2>
 <ul>
-    {% for media in all_media %}
+    {% for media in page_obj %}
     <li>
-        {{ media.name }} - Type : {{ media.media_type }} - Disponible : {{ media.available }}
+        {{ media.name }} - Type : {{ media.media_type }} - Disponible : {{ media.is_available }}
         {% if media.can_borrow %}
         - <a href="{% url 'staff:emprunter' media.id %}">Emprunter</a>
         {% endif %}
     </li>
     {% endfor %}
 </ul>
+
+<div class="pagination">
+    <span class="step-links">
+        {% if page_obj.has_previous %}
+            <a href="?page=1">&laquo; première</a>
+            <a href="?page={{ page_obj.previous_page_number }}">précédente</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}.
+        </span>
+
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">suivante</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}">dernière &raquo;</a>
+        {% endif %}
+    </span>
+</div>
+
 {% endblock %}

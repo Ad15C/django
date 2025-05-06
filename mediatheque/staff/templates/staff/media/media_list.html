@@ -1,12 +1,111 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-medias = MediaStaff.objects.filter(available=True)
-borrowable_medias = [media for media in medias if media.is_borrowable_by(request.user)]
+{% extends 'base.html' %}
 
-</body>
-</html>
+{% block content %}
+<div class="container mt-4">
+    <h2>Liste des médias</h2>
+
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+
+    <form method="get" class="row g-2 mb-4 align-items-end">
+        <div class="col-md-3">
+            <input type="text" name="media_type" value="{{ media_type_filter }}" placeholder="Type de média"
+                   class="form-control">
+        </div>
+
+        <div class="col-md-3">
+            <select name="available" class="form-control">
+                <option value="">Disponibilité</option>
+                <option value="true" {% if available_filter==
+                "true" %}selected{% endif %}>Disponible</option>
+                <option value="false" {% if available_filter==
+                "false" %}selected{% endif %}>Indisponible</option>
+            </select>
+        </div>
+
+        <div class="col-md-3 d-flex align-items-center">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="only_borrowable" value="true" id="borrowableCheck"
+                       {% if only_borrowable %}checked{% endif %}>
+                <label class="form-check-label" for="borrowableCheck">
+                    Uniquement empruntables
+                </label>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-primary">Filtrer</button>
+        </div>
+    </form>
+
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Nom :</th>
+            <th>Type :</th>
+            <th>Disponibilité :</th>
+            <th>Emprunté par :</th>
+            <th>Actions :</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in media_status %}
+        <tr>
+            <td>{{ item.media.name }}</td>
+            <td>{{ item.media.media_type }}</td>
+            <td>
+                {% if item.is_borrowed %}
+                <span class="text-danger">Non</span>
+                {% else %}
+                <span class="text-success">Oui</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if item.borrower %}
+                {{ item.borrower.get_full_name }}
+                {% else %}
+                -
+                {% endif %}
+            </td>
+            <td>
+                <a href="{% url 'media_detail' item.media.pk %}" class="btn btn-sm btn-outline-primary">Détails</a>
+                {% if not item.is_borrowed %}
+                <form method="post" action="{% url 'emprunter' item.media.pk %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-success">Emprunter</button>
+                </form>
+                {% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="5">Aucun média trouvé.</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    {% if page_obj.has_other_pages %}
+    <nav>
+        <ul class="pagination">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">&laquo;</a>
+            </li>
+            {% endif %}
+            {% for num in page_obj.paginator.page_range %}
+            <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+            </li>
+            {% endfor %}
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}">&raquo;</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

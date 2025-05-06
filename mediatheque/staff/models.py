@@ -21,7 +21,6 @@ class StaffBorrowItem(models.Model):
         on_delete=models.CASCADE,
         related_name='staff_borrows_media'
     )
-
     borrow_date = models.DateTimeField(auto_now_add=True)
     due_date = models.DateTimeField()
     return_date = models.DateTimeField(null=True, blank=True)
@@ -56,24 +55,36 @@ class StaffBorrowItem(models.Model):
 class MediaStaff(models.Model):
     name = models.CharField(max_length=200)
     media_type = models.CharField(max_length=50)
-    available = models.BooleanField(default=True)
+    is_available = models.BooleanField(default=True)  # Use is_available in MediaStaff base model
     can_borrow = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
 
     def is_borrowable_by(self, user):
-        # Le média doit être disponible et empruntable
-        return self.available and self.can_borrow and user.role in [User.CLIENT, User.STAFF]
+        if not self.is_available or not self.can_borrow:
+            return False
+
+        # Vérifie si un emprunt est déjà en cours
+        current_borrow = StaffBorrowItem.objects.filter(media=self, is_returned=False).first()
+        if current_borrow:
+            return False  # Le média est déjà emprunté
+
+        # Si l'utilisateur a un rôle autorisé, il peut emprunter
+        if user.role not in [User.CLIENT, User.STAFF]:
+            return False  # L'utilisateur n'a pas les droits nécessaires
+
+        return True
 
     @classmethod
     def get_borrowable_by(cls, user):
-        return [media for media in cls.objects.filter(available=True, can_borrow=True) if media.is_borrowable_by(user)]
+        return [media for media in cls.objects.all() if media.is_borrowable_by(user)]
 
 
 # Modèles spécifiques : Livre, DVD, CD, Jeu de Plateau
 class BookStaff(MediaStaff):
     author = models.CharField(max_length=200)
+    available = models.BooleanField(default=True)
 
     def save(self, *args, **kwargs):
         if not self.media_type:
@@ -102,10 +113,9 @@ class CDStaff(MediaStaff):
         super().save(*args, **kwargs)
 
 
-class BoardGameStaff(MediaStaff):
+class BoardGameStaff(MediaStaff):  # Inherits is_available from MediaStaff
     creators = models.CharField(max_length=100)
     is_visible = models.BooleanField(default=True)
-    is_available = models.BooleanField(default=True)
     game_type = models.CharField(max_length=100, blank=True, null=True)
 
     def __str__(self):
@@ -122,6 +132,5 @@ class BoardGameStaff(MediaStaff):
     def save(self, *args, **kwargs):
         if not self.media_type:
             self.media_type = 'board_game'
-        # S'assurer que le jeu de plateau ne peut pas être emprunté
-        self.can_borrow = False
+        self.can_borrow = False  # Ne permet pas l'emprunt des jeux de plateau
         super().save(*args, **kwargs)
