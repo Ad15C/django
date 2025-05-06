@@ -2,7 +2,7 @@ import pytest
 from django.urls import reverse
 from django.utils import timezone
 from datetime import timedelta
-from staff.models import MediaStaff, StaffBorrowItem
+from staff.models import StaffBorrowItem, BookStaff, BoardGameStaff, CDStaff, DVDStaff
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -15,16 +15,20 @@ def test_staff_dashboard(client):
     client.login(username="staffuser", password="testpass")
 
     # Création de plusieurs médias de chaque type : Livre, CD, DVD, et Board Game
-    book1 = MediaStaff.objects.create(name="Book 1", media_type="book", available=True, can_borrow=True)
-    book2 = MediaStaff.objects.create(name="Book 2", media_type="book", available=True, can_borrow=True)
-    cd1 = MediaStaff.objects.create(name="CD 1", media_type="cd", available=True, can_borrow=True)
-    cd2 = MediaStaff.objects.create(name="CD 2", media_type="cd", available=True, can_borrow=True)
-    dvd1 = MediaStaff.objects.create(name="DVD 1", media_type="dvd", available=True, can_borrow=True)
-    dvd2 = MediaStaff.objects.create(name="DVD 2", media_type="dvd", available=True, can_borrow=True)
-    board_game1 = MediaStaff.objects.create(name="Board Game 1", media_type="board_game", available=True,
-                                            can_borrow=True)
-    board_game2 = MediaStaff.objects.create(name="Board Game 2", media_type="board_game", available=True,
-                                            can_borrow=True)
+    book1 = BookStaff.objects.create(name="Book 1", author="Author 1", available=True, can_borrow=True)
+    book2 = BookStaff.objects.create(name="Book 2", author="Author 2", available=True, can_borrow=True)
+    cd1 = CDStaff.objects.create(name="CD 1", artist="Artist 1", is_available=True,
+                                 can_borrow=True)  # Utiliser is_available ici
+    cd2 = CDStaff.objects.create(name="CD 2", artist="Artist 2", is_available=True,
+                                 can_borrow=True)  # Utiliser is_available ici
+    dvd1 = DVDStaff.objects.create(name="DVD 1", producer="Producer 1", is_available=True,
+                                   can_borrow=True)  # Utiliser is_available ici
+    dvd2 = DVDStaff.objects.create(name="DVD 2", producer="Producer 2", is_available=True,
+                                   can_borrow=True)  # Utiliser is_available ici
+    board_game1 = BoardGameStaff.objects.create(name="Board Game 1", creators="Creator 1", is_available=True,
+                                                can_borrow=False)
+    board_game2 = BoardGameStaff.objects.create(name="Board Game 2", creators="Creator 2", is_available=True,
+                                                can_borrow=False)
 
     # Emprunts actifs (dans les temps)
     StaffBorrowItem.objects.create(

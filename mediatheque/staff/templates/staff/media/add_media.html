@@ -1,10 +1,36 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'base.html' %}
+{% load static %}
 
-</body>
-</html>
+{% block content %}
+<div class="container mt-4">
+    <h2>Ajouter un média</h2>
+
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            {{ media_form.as_p }}
+        </div>
+        <div class="mb-3" id="boardgame-form" style="display: none;">
+            <h5>Informations sur le jeu de plateau</h5>
+            {{ board_game_form.as_p }}
+        </div>
+        <button type="submit" class="btn btn-primary">Ajouter</button>
+        <a href="{% url 'media_list' %}" class="btn btn-secondary">Annuler</a>
+    </form>
+</div>
+
+<script>
+    const checkbox = document.querySelector('input[name="is_board_game"]');
+    const boardGameForm = document.getElementById('boardgame-form');
+    if (checkbox) {
+        checkbox.addEventListener('change', function () {
+            boardGameForm.style.display = this.checked ? 'block' : 'none';
+        });
+        boardGameForm.style.display = checkbox.checked ? 'block' : 'none';
+    }
+</script>
+{% endblock %}
