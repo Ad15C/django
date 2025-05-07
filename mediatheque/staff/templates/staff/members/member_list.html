@@ -1,10 +1,53 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'base.html' %}
 
-</body>
-</html>
+{% block content %}
+<div class="container mt-4">
+    <h2>Liste des Membres</h2>
+    <table class="table table-bordered">
+        <thead>
+        <tr>
+            <th>Nom d'utilisateur :</th>
+            <th>Prénom :</th>
+            <th>Nom :</th>
+            <th>Email :</th>
+            <th>Status :</th>
+            <th>Actions :</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for member in page_obj %}
+        <tr>
+            <td>{{ member.username }}</td>
+            <td>{{ member.first_name }}</td>
+            <td>{{ member.last_name }}</td>
+            <td>{{ member.email }}</td>
+            <td>{% if member.is_active %} Actif {% else %} Inactif {% endif %}</td>
+            <td>
+                <a href="{% url 'staff:modifier_membre' member.pk %}" class="btn btn-warning btn-sm">Modifier</a>
+                <a href="{% url 'staff:membre_detail' member.pk %}" class="btn btn-info btn-sm">Voir</a>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Pagination -->
+    <div class="pagination">
+        <span class="step-links">
+            {% if page_obj.has_previous %}
+                <a href="?page=1">&laquo; première</a>
+                <a href="?page={{ page_obj.previous_page_number }}">précédente</a>
+            {% endif %}
+
+            <span class="current">
+                Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}.
+            </span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}">suivante</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}">dernière &raquo;</a>
+            {% endif %}
+        </span>
+    </div>
+</div>
+{% endblock %}

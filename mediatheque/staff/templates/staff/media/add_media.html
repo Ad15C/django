@@ -1,36 +1,59 @@
 {% extends 'base.html' %}
-{% load static %}
 
 {% block content %}
 <div class="container mt-4">
-    <h2>Ajouter un média</h2>
+    <h2>Ajouter un Média</h2>
 
-    {% for message in messages %}
-    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-    {% endfor %}
-
-    <form method="post">
+    <form method="POST">
         {% csrf_token %}
-        <div class="mb-3">
-            {{ media_form.as_p }}
+        {{ media_form.as_p }}
+
+        <!-- Afficher les formulaires en fonction des sélections -->
+        <div>
+            <label for="is_board_game">Jeu de société</label>
+            <input type="checkbox" name="is_board_game" id="is_board_game" {% if board_game_form %}checked{% endif %}>
         </div>
-        <div class="mb-3" id="boardgame-form" style="display: none;">
-            <h5>Informations sur le jeu de plateau</h5>
+
+        {% if board_game_form %}
+        <div>
             {{ board_game_form.as_p }}
         </div>
-        <button type="submit" class="btn btn-primary">Ajouter</button>
-        <a href="{% url 'media_list' %}" class="btn btn-secondary">Annuler</a>
+        {% endif %}
+
+        <div>
+            <label for="is_book">Livre</label>
+            <input type="checkbox" name="is_book" id="is_book" {% if book_form %}checked{% endif %}>
+        </div>
+
+        {% if book_form %}
+        <div>
+            {{ book_form.as_p }}
+        </div>
+        {% endif %}
+
+        <div>
+            <label for="is_dvd">DVD</label>
+            <input type="checkbox" name="is_dvd" id="is_dvd" {% if dvd_form %}checked{% endif %}>
+        </div>
+
+        {% if dvd_form %}
+        <div>
+            {{ dvd_form.as_p }}
+        </div>
+        {% endif %}
+
+        <div>
+            <label for="is_cd">CD</label>
+            <input type="checkbox" name="is_cd" id="is_cd" {% if cd_form %}checked{% endif %}>
+        </div>
+
+        {% if cd_form %}
+        <div>
+            {{ cd_form.as_p }}
+        </div>
+        {% endif %}
+
+        <button type="submit" class="btn btn-primary">Ajouter le média</button>
     </form>
 </div>
-
-<script>
-    const checkbox = document.querySelector('input[name="is_board_game"]');
-    const boardGameForm = document.getElementById('boardgame-form');
-    if (checkbox) {
-        checkbox.addEventListener('change', function () {
-            boardGameForm.style.display = this.checked ? 'block' : 'none';
-        });
-        boardGameForm.style.display = checkbox.checked ? 'block' : 'none';
-    }
-</script>
 {% endblock %}

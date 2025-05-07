@@ -1,51 +1,44 @@
 from django import forms
 from staff.models import MediaStaff, BookStaff, DVDStaff, CDStaff, BoardGameStaff
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
-# staff/forms.py
-from django import forms
-from staff.models import MediaStaff, BookStaff, DVDStaff, CDStaff, BoardGameStaff
-
-
+# Media Forms
 class MediaForm(forms.ModelForm):
     class Meta:
         model = MediaStaff
         fields = ['name', 'media_type', 'is_available', 'can_borrow']
 
-    author = forms.CharField(max_length=200, required=False)
-    producer = forms.CharField(max_length=200, required=False)
-    artist = forms.CharField(max_length=200, required=False)
-    creators = forms.CharField(max_length=200, required=False)
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+class BookForm(forms.ModelForm):
+    class Meta:
+        model = BookStaff
+        fields = ['name', 'is_available', 'can_borrow', 'author']
 
-        # Ajouter 'author' uniquement pour les livres
-        if isinstance(self.instance, BookStaff):
-            self.fields['author'].required = True
-        else:
-            self.fields.pop('author', None)
 
-        # Ajouter 'producer' uniquement pour les DVDs
-        if isinstance(self.instance, DVDStaff):
-            self.fields['producer'].required = True
-        else:
-            self.fields.pop('producer', None)
+class DVDForm(forms.ModelForm):
+    class Meta:
+        model = DVDStaff
+        fields = ['name', 'is_available', 'can_borrow', 'producer']
 
-        # Ajouter 'artist' uniquement pour les CDs
-        if isinstance(self.instance, CDStaff):
-            self.fields['artist'].required = True
-        else:
-            self.fields.pop('artist', None)
 
-        # Ajouter 'creators' uniquement pour les jeux de plateau
-        if isinstance(self.instance, BoardGameStaff):
-            self.fields['creators'].required = True
-        else:
-            self.fields.pop('creators', None)
+class CDForm(forms.ModelForm):
+    class Meta:
+        model = CDStaff
+        fields = ['name', 'is_available', 'can_borrow', 'artist']
 
 
 class BoardGameForm(forms.ModelForm):
     class Meta:
         model = BoardGameStaff
-        fields = ['creators', 'is_visible', 'game_type']
+        fields = ['name', 'is_available', 'can_borrow', 'creators', 'game_type']
+
+
+# Member form
+
+class MemberForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['username', 'first_name', 'last_name', 'email', 'is_staff', 'is_active']
