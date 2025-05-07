@@ -55,8 +55,11 @@ ROOT_URLCONF = 'mediatheque.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [
-            BASE_DIR / 'mediatheque' / 'templates',
+         'DIRS': [
+            BASE_DIR / 'mediatheque/templates',  # Répertoire des templates de base (ex : base.html)
+            BASE_DIR / 'staff/templates',  # Répertoire pour les templates spécifiques à l'app staff
+            BASE_DIR / 'authentification/templates',  # Répertoire pour les  templates pour l'app authentification
+            BASE_DIR / 'client/templates',  # Répertoires pour les templates pour l'app client
         ],
         'APP_DIRS': True,
         'OPTIONS': {

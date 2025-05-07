@@ -1,10 +1,35 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'base.html' %}
 
-</body>
-</html>
+{% block content %}
+<div class="container mt-4">
+    <h2>Détails du Membre</h2>
+
+    <table class="table table-bordered">
+        <tr>
+            <th>Nom d'utilisateur</th>
+            <td>{{ member.username }}</td>
+        </tr>
+        <tr>
+            <th>Prénom</th>
+            <td>{{ member.first_name }}</td>
+        </tr>
+        <tr>
+            <th>Nom</th>
+            <td>{{ member.last_name }}</td>
+        </tr>
+        <tr>
+            <th>Email</th>
+            <td>{{ member.email }}</td>
+        </tr>
+        <tr>
+            <th>Status</th>
+            <td>{% if member.is_active %} Actif {% else %} Inactif {% endif %}</td>
+        </tr>
+        <tr>
+            <th>Staff</th>
+            <td>{% if member.is_staff %} Oui {% else %} Non {% endif %}</td>
+        </tr>
+    </table>
+    <a href="{% url 'staff:liste_membres' %}" class="btn btn-secondary mt-2">Retour à la liste</a>
+</div>
+{% endblock %}
