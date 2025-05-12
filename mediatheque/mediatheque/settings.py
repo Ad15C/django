@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'mediatheque',
     'authentification',
     'staff',
     'client'
@@ -131,6 +132,24 @@ LOGIN_REDIRECT_URL = 'authentification:home'
 
 # Où aller après déconnexion
 LOGOUT_REDIRECT_URL = 'authentification:connexion'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'level': 'WARNING',  # Changer DEBUG en WARNING pour moins de logs
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'WARNING',  # Réduit les logs de Django à WARNING
+            'propagate': True,
+        },
+    },
+}
 
 CSRF_COOKIE_SECURE = False  # Si tu es en développement (True si en production avec HTTPS)
 CSRF_COOKIE_HTTPONLY = True

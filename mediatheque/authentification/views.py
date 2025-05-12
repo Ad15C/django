@@ -1,13 +1,17 @@
+import logging
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .forms import CustomUserCreationForm, LoginForm, EditProfileForm
 from django.utils import timezone
-from staff.models import MediaStaff, StaffBorrowItem
+from staff.models import MediaStaff, StaffBorrowItem, BookStaff, CDStaff, DVDStaff, BoardGameStaff
 from django.contrib.auth import get_user_model
 from functools import wraps
 from django.core.paginator import Paginator
+from django.http import HttpResponseForbidden
+
+logger = logging.getLogger(__name__)
 
 User = get_user_model()
 
@@ -56,13 +60,18 @@ def login_view(request):
             password = form.cleaned_data['password']
             user = authenticate(request, username=username, password=password)
             if user is not None:
-                login(request, user)
+                login(request, user)  # Connecter l'utilisateur
                 messages.success(request, "Vous êtes connecté avec succès.")
-                return login_redirect_view(request)
+
+                # Redirection vers la page initiale de l'utilisateur après connexion
+                next_url = request.GET.get('next', '/')  # Redirige vers 'next' ou vers la page d'accueil
+                return redirect(next_url)
             else:
                 messages.error(request, "Nom d'utilisateur ou mot de passe incorrect.")
     else:
         form = LoginForm()
+
+    # Retourne le formulaire de connexion
     return render(request, 'authentification/login.html', {'form': form})
 
 
@@ -110,6 +119,9 @@ def client_dashboard(request):
 @login_required
 @role_required(User.STAFF)
 def staff_dashboard(request):
+    if not request.user.is_staff_user:  # Vérification si l'utilisateur est un membre du personnel
+        return HttpResponseForbidden("Vous n'êtes pas autorisé à voir cette page.")
+
     user = request.user
     current_borrows = StaffBorrowItem.objects.filter(
         user=user,
@@ -117,21 +129,38 @@ def staff_dashboard(request):
         due_date__gte=timezone.now()
     ).exclude(media__can_borrow=False)
 
+    for borrow in current_borrows:
+        if borrow.pk is None:
+            logger.error(f"Error: Missing pk for borrow {borrow}")
+        else:
+            logger.info(f"Current borrow pk: {borrow.pk}")
+
     overdue_borrows = StaffBorrowItem.objects.filter(
         user=user,
         is_returned=False,
         due_date__lt=timezone.now()
     ).exclude(media__can_borrow=False)
 
-    all_media = MediaStaff.objects.all().order_by('name')  # Tri des médias par nom
-    paginator = Paginator(all_media, 10)  # 10 médias par page
+    # Récupérer tous les objets des modèles concrets
+    all_books = BookStaff.objects.all().order_by('name')
+    all_cds = CDStaff.objects.all().order_by('name')
+    all_dvds = DVDStaff.objects.all().order_by('name')
+    all_boardgames = BoardGameStaff.objects.all().order_by('name')
+
+    # Combiner tous les résultats dans une seule liste
+    all_media = list(all_books) + list(all_cds) + list(all_dvds) + list(all_boardgames)
+    paginator = Paginator(all_media, 10)  # Pagination: 10 médias par page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+
+    for media in page_obj:
+        if not media.pk:
+            logger.error(f"Erreur : Le média {media.name} n'a pas de pk valide.")
 
     return render(request, 'authentification/staff_dashboard.html', {
         'current_borrows': current_borrows,
         'overdue_borrows': overdue_borrows,
-        'page_obj': page_obj,  # Passe l'objet de pagination au template
+        'page_obj': page_obj,
     })
 
 

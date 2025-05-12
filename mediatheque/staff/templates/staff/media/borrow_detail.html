@@ -2,15 +2,16 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h2>Détail de l'emprunt</h2>
+    <h2>Détails de l'emprunt</h2>
 
     <ul class="list-group">
         <li class="list-group-item"><strong>Média :</strong> {{ media.name }}</li>
+        <li class="list-group-item"><strong>Type :</strong> {{ media.media_type }}</li>
         <li class="list-group-item"><strong>Emprunté par :</strong> {{ user.get_full_name }}</li>
-        <li class="list-group-item"><strong>Date d'emprunt :</strong> {{ borrow.borrow_date }}</li>
-        <li class="list-group-item"><strong>À rendre avant :</strong> {{ borrow.due_date }}</li>
+        <li class="list-group-item"><strong>Date d'emprunt :</strong> {{ borrow_item.borrow_date }}</li>
+        <li class="list-group-item"><strong>À rendre avant :</strong> {{ borrow_item.due_date }}</li>
         <li class="list-group-item">
-            <strong>Statut :</strong>
+            <strong>Status :</strong>
             {% if is_late %}
             <span class="text-danger">En retard</span>
             {% else %}
@@ -19,6 +20,22 @@
         </li>
     </ul>
 
-    <a href="{% url 'media_liste' %}" class="btn btn-primary mt-3">Retour à la liste</a>
+    <!-- Liste des médias empruntés -->
+    <h3>Médias empruntés :</h3>
+    <form action="{% url 'staff:retourner_media' pk=borrow_item.pk %}" method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="media">Sélectionner un média à retourner :</label>
+            <select name="media" id="media" class="form-control">
+                {% for media in borrow_item.media.all %}
+                    <option value="{{ media.pk }}">{{ media.name }} - {{ media.media_type }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-danger mt-3">Retourner le média sélectionné</button>
+    </form>
+
+    <a href="{% url 'staff:media_liste' %}" class="btn btn-primary mt-3">Retour à la liste</a>
 </div>
 {% endblock %}

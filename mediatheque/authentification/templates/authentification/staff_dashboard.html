@@ -9,18 +9,27 @@
         <h3>Menu</h3>
         <ul class="list-group">
             <!-- Partie Médias -->
-            <li class="list-group-item active">Médias</li>
             <li class="list-group-item"><a href="{% url 'staff:media_liste' %}">Liste des Médias</a></li>
             <li class="list-group-item"><a href="{% url 'staff:ajouter_media' %}">Ajouter un Média</a></li>
-            <li class="list-group-item"><a href="{% url 'staff:emprunter' 0 %}">Emprunter un Média</a></li> <!-- 0 pour indiquer un lien générique, il faudra le paramétrer avec un id réel -->
-            <li class="list-group-item"><a href="{% url 'staff:detail_emprunt' 0 %}">Détails d'Emprunt</a></li>
-            <li class="list-group-item"><a href="{% url 'staff:retourner_media' 0 %}">Retourner un Média</a></li>
+            <li class="list-group-item">
+                {% if borrow.pk %}
+                <a href="{% url 'staff:detail_emprunt' pk=borrow.pk %}">Détails d'Emprunt</a>
+                {% else %}
+                Aucune donnée d'emprunt disponible
+                {% endif %}
+            </li>
+            <li class="list-group-item">{% if media.pk %}
+                <a href="{% url 'staff:retourner_media' pk=media.pk %}">Retourner un Média</a>
+                {% else %}
+                Pas de média disponible pour retourner
+                {% endif %}
+            </li>
 
+            <br>
             <!-- Partie Membres -->
-            <li class="list-group-item active">Membres</li>
             <li class="list-group-item"><a href="{% url 'staff:liste_membres' %}">Liste des Membres</a></li>
             <li class="list-group-item"><a href="{% url 'staff:creer_membre' %}">Créer un Membre</a></li>
-            <li class="list-group-item"><a href="{% url 'staff:modifier_membre' 0 %}">Modifier un Membre</a></li> <!-- 0 pour le lien générique -->
+            <li class="list-group-item"><a href="{% url 'staff:modifier_membre' 0 %}">Modifier un Membre</a></li>
             <li class="list-group-item"><a href="{% url 'staff:membre_detail' 0 %}">Détails d'un Membre</a></li>
         </ul>
     </div>
@@ -28,16 +37,18 @@
     <!-- Section des emprunts en cours -->
     <h2>Emprunts en cours</h2>
     <ul>
-        {% if current_borrows %}
         {% for borrow in current_borrows %}
         <li>
-            {{ borrow.media.name }} - Type : {{ borrow.media.media_type }} -
-            Date de retour prévue : {{ borrow.due_date }} - Emprunté par : {{ borrow.user.username }}
+            {{ borrow.media.name }} - Due date: {{ borrow.due_date|date:"d/m/Y" }}
+            | {% if borrow.pk %}
+            <a href="{% url 'staff:detail_emprunt' pk=borrow.pk %}">Détails</a>
+            {% else %}
+            No details available
+            {% endif %}
         </li>
-        {% endfor %}
-        {% else %}
+        {% empty %}
         <li>Aucun emprunt en cours.</li>
-        {% endif %}
+        {% endfor %}
     </ul>
 
     <!-- Section des emprunts en retard -->
@@ -45,13 +56,12 @@
     {% if overdue_borrows %}
     <ul>
         {% for borrow in overdue_borrows %}
-        {% if borrow.media.can_borrow %}
         <li>
-            {{ borrow.media.name }} ({{ borrow.media.media_type }}) -
-            Emprunté par : {{ borrow.user.username }} -
-            En retard de {{ borrow.due_date|timesince }} (due date: {{ borrow.due_date }})
+            {{ borrow.media.name }} - Overdue since: {{ borrow.due_date|date:"d/m/Y" }}
+            | <a href="{% url 'staff:detail_emprunt' pk=borrow.pk %}">Détails</a>
         </li>
-        {% endif %}
+        {% empty %}
+        <li>Aucun emprunt en retard.</li>
         {% endfor %}
     </ul>
     {% else %}
@@ -65,7 +75,7 @@
         <li>
             {{ media.name }} - Type : {{ media.media_type }} - Disponible : {{ media.is_available }}
             {% if media.can_borrow %}
-            - <a href="{% url 'staff:emprunter' media.id %}">Emprunter</a>
+            - <a href="{% url 'staff:emprunter' pk=media.pk %}">Emprunter</a>
             {% endif %}
         </li>
         {% endfor %}
@@ -75,8 +85,8 @@
     <div class="pagination">
         <span class="step-links">
             {% if page_obj.has_previous %}
-                <a href="?page=1">&laquo; première</a>
-                <a href="?page={{ page_obj.previous_page_number }}">précédente</a>
+            <a href="?page=1">&laquo; première</a>
+            <a href="?page={{ page_obj.previous_page_number }}">précédente</a>
             {% endif %}
 
             <span class="current">
@@ -84,8 +94,8 @@
             </span>
 
             {% if page_obj.has_next %}
-                <a href="?page={{ page_obj.next_page_number }}">suivante</a>
-                <a href="?page={{ page_obj.paginator.num_pages }}">dernière &raquo;</a>
+            <a href="?page={{ page_obj.next_page_number }}">suivante</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}">dernière &raquo;</a>
             {% endif %}
         </span>
     </div>
