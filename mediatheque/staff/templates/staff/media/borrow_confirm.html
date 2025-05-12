@@ -1,5 +1,9 @@
 {% extends 'base.html' %}
 
+{% block return_link %}
+<a href="{% url 'staff:espace_staff' %}">Retour au Dashboard</a>
+{% endblock %}
+
 {% block title %}Confirmer l'emprunt{% endblock %}
 
 {% block content %}
@@ -22,5 +26,5 @@
     {% endif %}
 
     <p><a href="{% url 'staff:media_liste' %}">Retour à la liste des médias</a></p>
-    </div>
-    {% endblock %}
+</div>
+{% endblock %}

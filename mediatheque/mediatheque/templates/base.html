@@ -24,8 +24,12 @@
             {% endif %}
         </ul>
     </nav>
-</header>
 
+    <!-- Bloc pour le lien de retour  -->
+    {% block return_link %}
+    <!-- Lien personnalisé -->
+    {% endblock %}
+</header>
 
 <div class="container">
     {% if messages %}

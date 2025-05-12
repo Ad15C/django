@@ -1,5 +1,5 @@
 from django import forms
-from .models import MediaStaff, BookStaff, DVDStaff, CDStaff, BoardGameStaff, StaffBorrowItem
+from .models import MediaStaff, BoardGameStaff, StaffBorrowItem, BookStaff, DVDStaff, CDStaff
 from django.contrib.auth import get_user_model
 from django.apps import apps
 
@@ -47,7 +47,7 @@ class MemberForm(forms.ModelForm):
 # Emprunt Média
 class BorrowMediaForm(forms.ModelForm):
     class Meta:
-        model = apps.get_model('staff', 'StaffBorrowItem')  # Utilisation dynamique du modèle
+        model = StaffBorrowItem
         fields = ['media', 'due_date']
         widgets = {
             'media': forms.HiddenInput(),
@@ -55,11 +55,33 @@ class BorrowMediaForm(forms.ModelForm):
         }
 
     def clean_media(self):
-        # Importer le modèle MediaStaff uniquement lorsque nécessaire
-        MediaStaff = apps.get_model('staff', 'MediaStaff')
-        BoardGameStaff = apps.get_model('staff', 'BoardGameStaff')
-
         media = self.cleaned_data['media']
+
+        # Vérifier si le média est une instance de MediaStaff
+        if not isinstance(media, MediaStaff):
+            raise forms.ValidationError("Le média spécifié n'est pas valide.")
+
+        # Vérifications spécifiques selon le type de média
         if isinstance(media, BoardGameStaff):
             raise forms.ValidationError("Les jeux de société ne peuvent pas être empruntés.")
+
+        # Validation pour les livres
+        if isinstance(media, BookStaff):
+            if not media.is_available:
+                raise forms.ValidationError("Le livre n'est pas disponible pour emprunt.")
+
+        # Validation pour les DVD
+        if isinstance(media, DVDStaff):
+            if not media.is_available:
+                raise forms.ValidationError("Le DVD n'est pas disponible pour emprunt.")
+
+        # Validation pour les CDs
+        if isinstance(media, CDStaff):
+            if not media.is_available:
+                raise forms.ValidationError("Le CD n'est pas disponible pour emprunt.")
+
+        # Validation générale pour tout type de MediaStaff
+        if not media.is_available:
+            raise forms.ValidationError(f"Le média {media.__class__.__name__} n'est pas disponible pour emprunt.")
+
         return media

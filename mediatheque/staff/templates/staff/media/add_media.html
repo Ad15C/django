@@ -1,59 +1,38 @@
 {% extends 'base.html' %}
 
+{% block return_link %}
+<a href="{% url 'staff:espace_staff' %}">Retour au Dashboard</a>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
     <h2>Ajouter un Média</h2>
 
-    <form method="POST">
+    <!-- Affichage des messages de succès ou d'erreur -->
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="post">
         {% csrf_token %}
-        {{ media_form.as_p }}
+        <label for="media_type">Choisissez un type de média :</label>
+        <select name="media_type" id="media_type">
+            <option value="book">Livre</option>
+            <option value="dvd">DVD</option>
+            <option value="cd">CD</option>
+            <option value="board_game">Jeu de société</option>
+        </select>
 
-        <!-- Afficher les formulaires en fonction des sélections -->
-        <div>
-            <label for="is_board_game">Jeu de société</label>
-            <input type="checkbox" name="is_board_game" id="is_board_game" {% if board_game_form %}checked{% endif %}>
-        </div>
-
-        {% if board_game_form %}
-        <div>
-            {{ board_game_form.as_p }}
-        </div>
+        <!-- Affiche le formulaire approprié en fonction du type de média choisi -->
+        {% if form %}
+        {{ form.as_p }}
         {% endif %}
 
-        <div>
-            <label for="is_book">Livre</label>
-            <input type="checkbox" name="is_book" id="is_book" {% if book_form %}checked{% endif %}>
-        </div>
-
-        {% if book_form %}
-        <div>
-            {{ book_form.as_p }}
-        </div>
-        {% endif %}
-
-        <div>
-            <label for="is_dvd">DVD</label>
-            <input type="checkbox" name="is_dvd" id="is_dvd" {% if dvd_form %}checked{% endif %}>
-        </div>
-
-        {% if dvd_form %}
-        <div>
-            {{ dvd_form.as_p }}
-        </div>
-        {% endif %}
-
-        <div>
-            <label for="is_cd">CD</label>
-            <input type="checkbox" name="is_cd" id="is_cd" {% if cd_form %}checked{% endif %}>
-        </div>
-
-        {% if cd_form %}
-        <div>
-            {{ cd_form.as_p }}
-        </div>
-        {% endif %}
-
-        <button type="submit" class="btn btn-primary">Ajouter le média</button>
+        <button type="submit">Ajouter le média</button>
     </form>
 </div>
 {% endblock %}
