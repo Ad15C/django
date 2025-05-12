@@ -1,5 +1,9 @@
 {% extends 'base.html' %}
 
+{% block return_link %}
+<a href="{% url 'staff:espace_staff' %}">Retour au Dashboard</a>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
     <h2>Détails de l'emprunt</h2>
@@ -28,7 +32,7 @@
             <label for="media">Sélectionner un média à retourner :</label>
             <select name="media" id="media" class="form-control">
                 {% for media in borrow_item.media.all %}
-                    <option value="{{ media.pk }}">{{ media.name }} - {{ media.media_type }}</option>
+                <option value="{{ media.pk }}">{{ media.name }} - {{ media.media_type }}</option>
                 {% endfor %}
             </select>
         </div>

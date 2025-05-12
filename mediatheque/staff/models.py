@@ -3,8 +3,8 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
 
-# Obtenez l'utilisateur personnalisé
 User = get_user_model()
 
 MAX_BORROW_DURATION_DAYS = 7
@@ -81,7 +81,6 @@ class MediaStaff(models.Model):
         pass
 
 
-# ✅ Modèle concret à utiliser dans les ForeignKey
 class Media(MediaStaff):
     pass
 
@@ -91,30 +90,47 @@ class BookStaff(MediaStaff):
     author = models.CharField(max_length=200)
     available = models.BooleanField(default=True)
 
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+
     def save(self, *args, **kwargs):
         if not self.media_type:
             self.media_type = 'book'
+
         self.content_type = ContentType.objects.get_for_model(BookStaff)
+
+        self.object_id = self.id
         super().save(*args, **kwargs)
 
 
 class DVDStaff(MediaStaff):
     producer = models.CharField(max_length=200)
 
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+
     def save(self, *args, **kwargs):
         if not self.media_type:
             self.media_type = 'dvd'
         self.content_type = ContentType.objects.get_for_model(DVDStaff)
+        self.object_id = self.id
         super().save(*args, **kwargs)
 
 
 class CDStaff(MediaStaff):
     artist = models.CharField(max_length=200)
 
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+
     def save(self, *args, **kwargs):
         if not self.media_type:
             self.media_type = 'cd'
         self.content_type = ContentType.objects.get_for_model(CDStaff)
+        self.object_id = self.id  # Assurez-vous de définir object_id correctement
         super().save(*args, **kwargs)
 
 
@@ -122,6 +138,11 @@ class BoardGameStaff(MediaStaff):
     creators = models.CharField(max_length=100)
     is_visible = models.BooleanField(default=True)
     game_type = models.CharField(max_length=100, blank=True, null=True)
+
+    # Champs nécessaires pour le GenericForeignKey
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
 
     def __str__(self):
         return self.name
@@ -132,10 +153,12 @@ class BoardGameStaff(MediaStaff):
             self.save(update_fields=['is_available'])
 
     def is_borrowable_by(self, user):
-        return False  # Les jeux de société ne peuvent pas être empruntés
+        return False
 
     def save(self, *args, **kwargs):
         if not self.media_type:
             self.media_type = 'board_game'
         self.can_borrow = False  # Ne permet pas l'emprunt des jeux de plateau
+        self.content_type = ContentType.objects.get_for_model(BoardGameStaff)
+        self.object_id = self.id
         super().save(*args, **kwargs)

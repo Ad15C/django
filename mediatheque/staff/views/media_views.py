@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.db import transaction
 from django.utils import timezone
 from staff.models import MediaStaff, StaffBorrowItem, BoardGameStaff, BookStaff, DVDStaff, CDStaff
-from staff.forms import MediaForm, BoardGameForm, BookForm, CDForm, DVDForm, BorrowMediaForm
+from staff.forms import BorrowMediaForm, BookForm, DVDForm, CDForm, BoardGameForm
 from django.core.paginator import Paginator
 from django.http import HttpResponseForbidden
 
@@ -56,37 +56,37 @@ def staff_dashboard(request):
 @permission_required('authentification.can_add_media', raise_exception=True)
 def add_media(request):
     if request.method == 'POST':
-        # Initialisation des formulaires spécifiques
-        book_form = BookForm(request.POST) if 'is_book' in request.POST else None
-        dvd_form = DVDForm(request.POST) if 'is_dvd' in request.POST else None
-        cd_form = CDForm(request.POST) if 'is_cd' in request.POST else None
-        board_game_form = BoardGameForm(request.POST) if 'is_board_game' in request.POST else None
+        media_type = request.POST.get('media_type')
 
-        # La boucle factorisée
-        for form, success_message in [
-            (book_form, "Livre ajouté avec succès."),
-            (dvd_form, "DVD ajouté avec succès."),
-            (cd_form, "CD ajouté avec succès."),
-            (board_game_form, "Jeu de société ajouté avec succès."),
-        ]:
-            if form and form.is_valid():
-                form.save()
-                messages.success(request, success_message)
-                return redirect('staff:media_liste')
+        # Vérifie quel type de média est sélectionné et instancie le bon formulaire
+        if media_type == 'book':
+            form = BookForm(request.POST)
+        elif media_type == 'dvd':
+            form = DVDForm(request.POST)
+        elif media_type == 'cd':
+            form = CDForm(request.POST)
+        elif media_type == 'board_game':
+            form = BoardGameForm(request.POST)
+        else:
+            form = None
+            messages.error(request, "Type de média invalide.")
+
+        # Sauvegarde le formulaire et message de succès
+        if form and form.is_valid():
+            form.save()  # Sauvegarde du formulaire
+            messages.success(request, f"{media_type.capitalize()} ajouté avec succès.")
+            return redirect('staff:media_liste')
+
+        else:
+            # Si le formulaire n'est pas valide, on ajoute un message d'erreur
+            messages.error(request, "Erreur lors de l'ajout du média. Veuillez réessayer.")
 
     else:
-        # Initialisation des formulaires vides pour le GET
-        book_form = BookForm()
-        dvd_form = DVDForm()
-        cd_form = CDForm()
-        board_game_form = BoardGameForm()
+        # Si c'est une requête GET, on initie un formulaire vide
+        form = None
 
-    # Rendu du template
     return render(request, 'staff/media/add_media.html', {
-        'book_form': book_form,
-        'dvd_form': dvd_form,
-        'cd_form': cd_form,
-        'board_game_form': board_game_form,
+        'form': form,
     })
 
 

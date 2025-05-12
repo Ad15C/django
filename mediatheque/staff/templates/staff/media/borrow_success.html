@@ -1,5 +1,9 @@
 {% extends 'base.html' %}
 
+{% block return_link %}
+<a href="{% url 'staff:espace_staff' %}">Retour au Dashboard</a>
+{% endblock %}
+
 {% block title %}Emprunt réussi{% endblock %}
 
 {% block content %}
@@ -13,5 +17,5 @@
     <p><a href="{% url 'staff:detail_emprunt' pk=borrow_item.pk %}">Voir les détails de l'emprunt</a></p>
     <p><a href="{% url 'staff:media_liste' %}">Retour à la liste des médias</a></p>
     <p><a href="{% url 'authentification:espace_staff' %}">Retour à l'espace du personnel</a></p>
-    </div>
-    {% endblock %}
+</div>
+{% endblock %}
