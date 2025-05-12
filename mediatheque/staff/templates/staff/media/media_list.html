@@ -18,17 +18,15 @@
         <div class="col-md-3">
             <select name="available" class="form-control">
                 <option value="">Disponibilité</option>
-                <option value="true" {% if available_filter==
-                "true" %}selected{% endif %}>Disponible</option>
-                <option value="false" {% if available_filter==
-                "false" %}selected{% endif %}>Indisponible</option>
+                <option value="true" {% if available_filter_is_true %}selected{% endif %}>Disponible</option>
+                <option value="false" {% if available_filter_is_false %}selected{% endif %}>Indisponible</option>
             </select>
         </div>
 
         <div class="col-md-3 d-flex align-items-center">
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" name="only_borrowable" value="true" id="borrowableCheck"
-                       {% if only_borrowable== "true" %}checked{% endif %}>
+                       {% if only_borrowable_checked %}checked{% endif %}>
                 <label class="form-check-label" for="borrowableCheck">
                     Uniquement empruntables
                 </label>
@@ -39,7 +37,6 @@
             <button type="submit" class="btn btn-primary">Filtrer</button>
         </div>
     </form>
-
 
     <!-- Table des médias -->
     <table class="table table-striped">
@@ -73,12 +70,11 @@
             </td>
             <td>
                 <a href="{% url 'staff:media_detail' item.pk %}" class="btn btn-sm btn-outline-primary">Détails</a>
-
-                {% if isinstance(item, BoardGameStaff) %}
+                {% if item.media_type == "board_game" %}
                 <p><strong>Note : Ce jeu de société ne peut pas être emprunté.</strong></p>
                 {% else %}
-                {% if item.is_borrowable_by(user) %}
-                <form method="post" action="{% url 'staff:borrow_media' item.pk %}" style="display:inline;">
+                {% if item.is_available and item.can_be_borrowed_by_user %}
+                <form method="post" action="{% url 'staff:emprunter' item.pk %}" style="display:inline;">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-sm btn-success">Emprunter</button>
                 </form>

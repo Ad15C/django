@@ -3,11 +3,15 @@
 {% block title %}Emprunt réussi{% endblock %}
 
 {% block content %}
-<h2>Emprunt réussi</h2>
-<p>Vous avez emprunté le média : <strong>{{ media.name }}</strong></p>
-<p>Type de média : {{ media.media_type }}</p>
-<p>Date d'emprunt : {{ borrow_item.borrow_date|date:"d M Y" }}</p>
-<p>Date limite de retour : {{ borrow_item.due_date|date:"d M Y" }}</p>
-<p><a href="{% url 'staff:emprunter' %}">Retour à l'emprunt</a></p>
-<p><a href="{% url 'authentification:espace_staff' %}">Retour à l'espace du personnel</a></p>
-{% endblock %}
+<div class="mb-4">
+
+    <h2>Emprunt réussi</h2>
+    <p>Vous avez emprunté le média : <strong>{{ media.name }}</strong></p>
+    <p>Type de média : {{ media.media_type }}</p>
+    <p>Date d'emprunt : {{ borrow_item.borrow_date|date:"d M Y" }}</p>
+    <p>Date limite de retour : {{ borrow_item.due_date|date:"d M Y" }}</p>
+    <p><a href="{% url 'staff:detail_emprunt' pk=borrow_item.pk %}">Voir les détails de l'emprunt</a></p>
+    <p><a href="{% url 'staff:media_liste' %}">Retour à la liste des médias</a></p>
+    <p><a href="{% url 'authentification:espace_staff' %}">Retour à l'espace du personnel</a></p>
+    </div>
+    {% endblock %}

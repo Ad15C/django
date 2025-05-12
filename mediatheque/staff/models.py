@@ -1,4 +1,5 @@
 from django.db import models
+from django import forms
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.contrib.contenttypes.models import ContentType
@@ -17,7 +18,7 @@ class StaffBorrowItem(models.Model):
         related_name='staff_borrow_items'
     )
     media = models.ForeignKey(
-        'MediaStaff',
+        'Media',
         on_delete=models.CASCADE,
         related_name='staff_borrows_media'
     )
@@ -27,35 +28,34 @@ class StaffBorrowItem(models.Model):
     is_returned = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
-        if not self.id:
+        if not self.due_date:
             self.due_date = timezone.now() + timezone.timedelta(days=MAX_BORROW_DURATION_DAYS)
         if self.is_returned and not self.return_date:
             self.return_date = timezone.now()
         super().save(*args, **kwargs)
 
+    def is_overdue(self):
+        return not self.is_returned and self.due_date < timezone.now()
+
     @staticmethod
     def can_borrow(user):
-        # Vérifier s'il y a déjà 3 emprunts actifs
         active_borrows = StaffBorrowItem.objects.filter(user=user, is_returned=False)
         if active_borrows.count() >= 3:
             return False
-
-        # Vérifier si un emprunt est en retard
-        overdue_borrows = StaffBorrowItem.objects.filter(
-            user=user,
-            is_returned=False,
-            due_date__lt=timezone.now()
-        )
-
-        # L'utilisateur peut emprunter si aucun emprunt n'est en retard
+        overdue_borrows = active_borrows.filter(due_date__lt=timezone.now())
         return not overdue_borrows.exists()
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['user', 'is_returned']),
+        ]
 
 
 # Modèle de base pour Media
 class MediaStaff(models.Model):
     name = models.CharField(max_length=200)
     media_type = models.CharField(max_length=50)
-    is_available = models.BooleanField(default=True)  # Use is_available in MediaStaff base model
+    is_available = models.BooleanField(default=True)
     can_borrow = models.BooleanField(default=True)
 
     def __str__(self):
@@ -64,21 +64,26 @@ class MediaStaff(models.Model):
     def is_borrowable_by(self, user):
         if not self.is_available or not self.can_borrow:
             return False
-
-        # Vérifie si un emprunt est déjà en cours
         current_borrow = StaffBorrowItem.objects.filter(media=self, is_returned=False).first()
         if current_borrow:
-            return False  # Le média est déjà emprunté
-
-        # Si l'utilisateur a un rôle autorisé, il peut emprunter
+            return False
         if user.role not in [User.CLIENT, User.STAFF]:
-            return False  # L'utilisateur n'a pas les droits nécessaires
-
+            return False
         return True
 
     @classmethod
     def get_borrowable_by(cls, user):
-        return [media for media in cls.objects.all() if media.is_borrowable_by(user)]
+        return cls.objects.filter(is_available=True, can_borrow=True).exclude(
+            staff_borrows_media__is_returned=False
+        )
+
+    class Meta:
+        pass
+
+
+# ✅ Modèle concret à utiliser dans les ForeignKey
+class Media(MediaStaff):
+    pass
 
 
 # Modèles spécifiques : Livre, DVD, CD, Jeu de Plateau
@@ -113,7 +118,7 @@ class CDStaff(MediaStaff):
         super().save(*args, **kwargs)
 
 
-class BoardGameStaff(MediaStaff):  # Inherits is_available from MediaStaff
+class BoardGameStaff(MediaStaff):
     creators = models.CharField(max_length=100)
     is_visible = models.BooleanField(default=True)
     game_type = models.CharField(max_length=100, blank=True, null=True)
@@ -126,8 +131,8 @@ class BoardGameStaff(MediaStaff):  # Inherits is_available from MediaStaff
             self.is_available = not self.is_available
             self.save(update_fields=['is_available'])
 
-    def can_borrow(self):
-        return False  # Les jeux de plateau ne peuvent pas être empruntés
+    def is_borrowable_by(self, user):
+        return False  # Les jeux de société ne peuvent pas être empruntés
 
     def save(self, *args, **kwargs):
         if not self.media_type:
