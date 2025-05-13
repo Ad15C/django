@@ -1,7 +1,7 @@
 from django.urls import path
 from . import views
 
-app_name = 'authentification'
+app_name = 'mediatheque.authentification'
 
 urlpatterns = [
     path('home/', views.home_view, name='home'),

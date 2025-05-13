@@ -9,18 +9,18 @@
 <header>
     <nav>
         <ul>
-            <li><a href="{% url 'authentification:home' %}">Accueil</a></li>  <!-- Home -->
+            <li><a href="{% url 'mediatheque.authentification:home' %}">Accueil</a></li>  <!-- Home -->
 
             {% if user.is_authenticated %}
             {% if user.role == 'staff' %}
-            <li><a href="{% url 'authentification:espace_staff' %}">Espace des Membres</a></li>
+            <li><a href="{% url 'mediatheque.authentification:espace_staff' %}">Espace des Membres</a></li>
             {% elif user.role == 'client' %}
-            <li><a href="{% url 'authentification:espace_client' %}">Espace du Personnel</a></li>
+            <li><a href="{% url 'mediatheque.authentification:espace_client' %}">Espace du Personnel</a></li>
             {% endif %}
-            <li><a href="{% url 'authentification:deconnexion' %}">Déconnexion</a></li>
+            <li><a href="{% url 'mediatheque.authentification:deconnexion' %}">Déconnexion</a></li>
             {% else %}
-            <li><a href="{% url 'authentification:connexion' %}">Connexion</a></li>
-            <li><a href="{% url 'authentification:inscription' %}">Inscription</a></li>
+            <li><a href="{% url 'mediatheque.authentification:connexion' %}">Connexion</a></li>
+            <li><a href="{% url 'mediatheque.authentification:inscription' %}">Inscription</a></li>
             {% endif %}
         </ul>
     </nav>

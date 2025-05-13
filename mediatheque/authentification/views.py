@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .forms import CustomUserCreationForm, LoginForm, EditProfileForm
 from django.utils import timezone
-from staff.models import MediaStaff, StaffBorrowItem, BookStaff, CDStaff, DVDStaff, BoardGameStaff
+from mediatheque.staff.models import MediaStaff, StaffBorrowItem, BookStaff, CDStaff, DVDStaff, BoardGameStaff
 from django.contrib.auth import get_user_model
 from functools import wraps
 from django.core.paginator import Paginator
@@ -22,7 +22,7 @@ def role_required(role):
         def _wrapped_view(request, *args, **kwargs):
             if request.user.role != role:
                 messages.error(request, "Vous n'avez pas l'autorisation d'accéder à cette page.")
-                return redirect('authentification:home')
+                return redirect('mediatheque.authentification:home')
             return view_func(request, *args, **kwargs)
 
         return _wrapped_view
@@ -42,7 +42,7 @@ def signup_view(request):
             user = form.save()
             login(request, user)
             messages.success(request, "Inscription réussie ! Vous êtes maintenant connecté.")
-            return redirect('authentification:home')
+            return redirect('mediatheque.authentification:home')
         else:
             for field, errors in form.errors.items():
                 for error in errors:
@@ -78,7 +78,7 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     messages.success(request, "Vous êtes maintenant déconnecté.")
-    return redirect('authentification:connexion')
+    return redirect('mediatheque.authentification:connexion')
 
 
 @login_required
@@ -88,14 +88,14 @@ def edit_profile(request, user_id):
     # Vérifier si l'utilisateur modifie son propre profil ou est admin
     if request.user != user and request.user.role != User.ADMIN:
         messages.error(request, "Accès interdit.")
-        return redirect('authentification:home')
+        return redirect('mediatheque.authentification:home')
 
     if request.method == "POST":
         form = EditProfileForm(request.POST, instance=user)
         if form.is_valid():
             form.save()
             messages.success(request, "Profil mis à jour avec succès.")
-            return redirect('authentification:modifier_profil', user_id=user.id)
+            return redirect('mediatheque.authentification:modifier_profil', user_id=user.id)
     else:
         form = EditProfileForm(instance=user)
 
@@ -169,7 +169,7 @@ def login_redirect_view(request):
     if request.user.role == User.ADMIN:
         return redirect('/admin/')
     elif request.user.role == User.STAFF:
-        return redirect('authentification:espace_staff')
+        return redirect('mediatheque.authentification:espace_staff')
     elif request.user.role == User.CLIENT:
-        return redirect('authentification:espace_client')
-    return redirect('authentification:home')
+        return redirect('mediatheque.authentification:espace_client')
+    return redirect('mediatheque.authentification:home')

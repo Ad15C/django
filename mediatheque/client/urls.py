@@ -1,8 +1,8 @@
 from django.urls import path, include
-from authentification.views import client_dashboard
+from mediatheque.authentification.views import client_dashboard
 from . import views
 
-app_name = 'client'
+app_name = 'mediatheque.client'
 
 urlpatterns = [
     path('espace_client', views.client_dashboard, name='espace_client'),
