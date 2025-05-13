@@ -7,15 +7,9 @@ from django.contrib.auth import get_user_model
 os.environ['DJANGO_SETTINGS_MODULE'] = 'mediatheque.settings'
 django.setup()
 
-
-@pytest.fixture(scope='session')
-def setup_django():
-    pass
-
-
+# Fixture pour créer un utilisateur normal
 @pytest.fixture
 def user():
-    # Créer un utilisateur test pour tes tests
     user = get_user_model().objects.create_user(
         username='testuser',
         email='testuser@example.com',
@@ -23,10 +17,9 @@ def user():
     )
     return user
 
-
+# Fixture pour créer un utilisateur avec des droits de staff
 @pytest.fixture
 def staff_user():
-    # Créer un utilisateur avec les droits de staff
     user = get_user_model().objects.create_user(
         username='staffuser',
         password='staffpassword',
@@ -34,10 +27,9 @@ def staff_user():
     )
     return user
 
-
+# Fixture pour créer un utilisateur client
 @pytest.fixture
 def client_user():
-    # Créer un utilisateur de type client
     user = get_user_model().objects.create_user(
         username='clientuser',
         password='clientpassword'
