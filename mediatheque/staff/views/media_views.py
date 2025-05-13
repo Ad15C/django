@@ -3,8 +3,8 @@ from django.contrib.auth.decorators import permission_required, login_required
 from django.contrib import messages
 from django.db import transaction
 from django.utils import timezone
-from staff.models import MediaStaff, StaffBorrowItem, BoardGameStaff, BookStaff, DVDStaff, CDStaff
-from staff.forms import BorrowMediaForm, BookForm, DVDForm, CDForm, BoardGameForm
+from mediatheque.staff.models import MediaStaff, StaffBorrowItem, BoardGameStaff, BookStaff, DVDStaff, CDStaff
+from mediatheque.staff.forms import BorrowMediaForm, BookForm, DVDForm, CDForm, BoardGameForm
 from django.core.paginator import Paginator
 from django.http import HttpResponseForbidden
 

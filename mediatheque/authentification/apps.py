@@ -5,7 +5,7 @@ from django.apps import apps
 
 class AuthentificationConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'authentification'
+    name = 'mediatheque.authentification'
 
     def ready(self):
         from django.contrib.auth.models import Group, Permission

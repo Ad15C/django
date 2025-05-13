@@ -16,6 +16,6 @@
     <p>Date limite de retour : {{ borrow_item.due_date|date:"d M Y" }}</p>
     <p><a href="{% url 'staff:detail_emprunt' pk=borrow_item.pk %}">Voir les détails de l'emprunt</a></p>
     <p><a href="{% url 'staff:media_liste' %}">Retour à la liste des médias</a></p>
-    <p><a href="{% url 'authentification:espace_staff' %}">Retour à l'espace du personnel</a></p>
+    <p><a href="{% url 'mediatheque.authentification:espace_staff' %}">Retour à l'espace du personnel</a></p>
 </div>
 {% endblock %}

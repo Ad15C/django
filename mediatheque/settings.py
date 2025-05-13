@@ -35,9 +35,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'authentification',
-    'staff',
-    'client'
+    'mediatheque.authentification',
+    'mediatheque.staff',
+    'mediatheque.client'
 ]
 
 MIDDLEWARE = [
@@ -50,7 +50,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'mediatheque.urls'
+ROOT_URLCONF = 'mediatheque.mediatheque.urls'
 
 TEMPLATES = [
     {
@@ -125,12 +125,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'authentification.CustomUser'
 
-LOGIN_URL = 'authentification:connexion'
+LOGIN_URL = 'mediatheque.authentification:connexion'
 # Où aller après connexion réussie
-LOGIN_REDIRECT_URL = 'authentification:home'
+LOGIN_REDIRECT_URL = 'mediatheque.authentification:home'
 
 # Où aller après déconnexion
-LOGOUT_REDIRECT_URL = 'authentification:connexion'
+LOGOUT_REDIRECT_URL = 'mediatheque.authentification:connexion'
 
 LOGGING = {
     'version': 1,

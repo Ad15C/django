@@ -15,16 +15,16 @@
 
 <h3>Vos emprunts :</h3>
 {% if message %}
-<p>{{ message }}</p>  <!-- Afficher le message s'il existe -->
+<p>{{ message }}</p>
 {% else %}
 <ul>
     {% for borrow in borrows %}
-    <li>{{ borrow.media.name }}</li>  <!-- Afficher les emprunts actifs -->
+    <li>{{ borrow.media.name }}</li>
     {% endfor %}
 </ul>
 {% endif %}
 
-<p><a href="{% url 'authentification:modifier_profil' user_id=user.id %}">Modifier mon profil</a>
+<p><a href="{% url 'mediatheque.authentification:modifier_profil' user_id=user.id %}">Modifier mon profil</a>
 </p>
 
 {% endblock %}

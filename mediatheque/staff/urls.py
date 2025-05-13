@@ -1,5 +1,5 @@
 from django.urls import path
-from authentification.views import staff_dashboard
+from mediatheque.authentification.views import staff_dashboard
 from .views import media_views, member_views
 
 app_name = 'staff'
