@@ -40,10 +40,3 @@ def client_user():
 def test_user_creation(user):
     assert user.username == 'testuser'
     assert user.email == 'testuser@example.com'
-
-
-# Exemple de test avec la marque django_db
-@pytest.mark.django_db
-def test_user_creation(user, db):
-    assert user.username == 'testuser'
-    assert user.email == 'testuser@example.com'
