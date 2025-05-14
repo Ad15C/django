@@ -10,6 +10,7 @@ from django.contrib.auth import get_user_model
 from functools import wraps
 from django.core.paginator import Paginator
 from django.http import HttpResponseForbidden
+from .decorators import role_required
 
 logger = logging.getLogger(__name__)
 
@@ -63,9 +64,17 @@ def login_view(request):
                 login(request, user)  # Connecter l'utilisateur
                 messages.success(request, "Vous êtes connecté avec succès.")
 
-                # Redirection vers la page initiale de l'utilisateur après connexion
-                next_url = request.GET.get('next', '/')  # Redirige vers 'next' ou vers la page d'accueil
-                return redirect(next_url)
+                # Redirection vers la page appropriée en fonction du rôle de l'utilisateur
+                if user.role == User.CLIENT:
+                    return redirect('mediatheque.authentification:espace_client')
+                elif user.role == User.STAFF:
+                    return redirect('mediatheque.authentification:espace_staff')
+                elif user.role == User.ADMIN:
+                    return redirect('/admin/')
+
+                # Si aucun rôle ne correspond, on redirige vers la page d'accueil par défaut
+                return redirect('/')
+
             else:
                 messages.error(request, "Nom d'utilisateur ou mot de passe incorrect.")
     else:
@@ -105,9 +114,17 @@ def edit_profile(request, user_id):
 @login_required
 @role_required(User.CLIENT)
 def client_dashboard(request):
+    if request.user.role != User.CLIENT:
+        return HttpResponseForbidden("Access Denied")
+
+        # Emprunts en cours pour cet utilisateur
     borrows = StaffBorrowItem.objects.filter(user=request.user, is_returned=False).select_related('media')
+
+    # Message si aucun emprunt
     message = None if borrows.exists() else 'Aucune réservation en cours.'
-    available_media = MediaStaff.get_borrowable_by(request.user)
+
+    # Médias disponibles à l'emprunt
+    available_media = MediaStaff.get_borrowable_by(request.user).filter(is_available=True, can_borrow=True)
 
     return render(request, "authentification/client_dashboard.html", {
         'borrows': borrows,

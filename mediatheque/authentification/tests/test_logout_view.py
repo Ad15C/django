@@ -11,11 +11,11 @@ def test_logout_view_redirects_to_login(client: Client, user: User):
     client.login(username=user.username, password='password')
 
     # Send GET request to the logout view
-    response = client.get(reverse('authentification:deconnexion'))
+    response = client.get(reverse('mediatheque.authentification:deconnexion'))
 
     # Assert the redirect to the login page
     assert response.status_code == 302
-    assert response.url == reverse('authentification:connexion')
+    assert response.url == reverse('mediatheque.authentification:connexion')
 
 
 @pytest.mark.django_db
@@ -24,7 +24,7 @@ def test_logout_view_shows_success_message(client: Client, user: User):
     client.login(username=user.username, password='password')
 
     # Send GET request to the logout view
-    response = client.get(reverse('authentification:deconnexion'))
+    response = client.get(reverse('mediatheque.authentification:deconnexion'))
 
     # Check if the success message is present
     messages = list(get_messages(response.wsgi_request))
@@ -36,8 +36,8 @@ def test_logout_view_shows_success_message(client: Client, user: User):
 @pytest.mark.django_db
 def test_logout_view_when_not_logged_in(client: Client):
     # Access the logout page without being logged in
-    response = client.get(reverse('authentification:deconnexion'))
+    response = client.get(reverse('mediatheque.authentification:deconnexion'))
 
     # The user should be redirected to the login page even if not logged in
     assert response.status_code == 302
-    assert response.url == reverse('authentification:connexion')
+    assert response.url == reverse('mediatheque.authentification:connexion')

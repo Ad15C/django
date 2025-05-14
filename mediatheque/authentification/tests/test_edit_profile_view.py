@@ -26,12 +26,12 @@ def test_edit_profile_valid_data(client, user):
     }
 
     # Envoi de la requête POST pour modifier le profil
-    url = reverse('authentification:modifier_profil', args=[user.id])
+    url = reverse('mediatheque.authentification:modifier_profil', args=[user.id])
     response = client.post(url, data)
 
     # Vérifier que la redirection a eu lieu
     assert response.status_code == 302  # Redirection après une mise à jour réussie
-    assert response.url == reverse('authentification:modifier_profil', args=[user.id])
+    assert response.url == reverse('mediatheque.authentification:modifier_profil', args=[user.id])
 
     # Vérifier que les données utilisateur ont bien été mises à jour
     user.refresh_from_db()
@@ -45,7 +45,7 @@ def test_edit_profile_get(client, user):
     client.login(username=user.username, password='password123')
 
     # Accéder à la page de modification de profil
-    url = reverse('authentification:modifier_profil', args=[user.id])
+    url = reverse('mediatheque.authentification:modifier_profil', args=[user.id])
     response = client.get(url)
 
     # Vérifier que la réponse est correcte
@@ -66,12 +66,12 @@ def test_edit_profile_with_password(client, user):
     }
 
     # Envoi de la requête POST pour modifier le profil
-    url = reverse('authentification:modifier_profil', args=[user.id])
+    url = reverse('mediatheque.authentification:modifier_profil', args=[user.id])
     response = client.post(url, data)
 
     # Vérifier que la redirection a eu lieu
     assert response.status_code == 302  # Redirection après une mise à jour réussie
-    assert response.url == reverse('authentification:modifier_profil', args=[user.id])
+    assert response.url == reverse('mediatheque.authentification:modifier_profil', args=[user.id])
 
     # Vérifier que le mot de passe de l'utilisateur a été mis à jour
     user.refresh_from_db()
@@ -91,7 +91,7 @@ def test_edit_profile_invalid_data(client, user):
     }
 
     # Envoi de la requête POST pour modifier le profil
-    url = reverse('authentification:modifier_profil', args=[user.id])
+    url = reverse('mediatheque.authentification:modifier_profil', args=[user.id])
     response = client.post(url, data)
 
     # Vérifier que la page est rendue à nouveau avec des erreurs de validation
@@ -112,7 +112,7 @@ def test_edit_profile_no_password_change(client, user):
     }
 
     # Envoi de la requête POST pour modifier le profil
-    url = reverse('authentification:modifier_profil', args=[user.id])
+    url = reverse('mediatheque.authentification:modifier_profil', args=[user.id])
     response = client.post(url, data)
 
     # Vérifier que la redirection a eu lieu
@@ -128,11 +128,11 @@ def test_edit_profile_not_logged_in(client, user):
     """
     Test pour vérifier qu'un utilisateur non connecté est redirigé vers la page de connexion personnalisée.
     """
-    url = reverse('authentification:modifier_profil', args=[user.id])
+    url = reverse('mediatheque.authentification:modifier_profil', args=[user.id])
     response = client.get(url)
 
     # La redirection doit pointer vers l'URL de connexion définie dans les URLs comme 'authentification:connexion'
-    login_url = reverse('authentification:connexion')
+    login_url = reverse('mediatheque.authentification:connexion')
     expected_redirect_url = f"{login_url}?next={url}"
 
     assert response.status_code == 302

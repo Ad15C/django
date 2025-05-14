@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Mon Espace {% endblock %}
+{% block title %}Mon Espace{% endblock %}
 
 {% block content %}
 <h2>Bienvenue, {{ user.username }} !</h2>
@@ -24,7 +24,15 @@
 </ul>
 {% endif %}
 
-<p><a href="{% url 'mediatheque.authentification:modifier_profil' user_id=user.id %}">Modifier mon profil</a>
-</p>
+<h3>Médias disponibles :</h3>
+{% if available_media %}
+<ul>
+    {% for media in available_media %}
+    <li>{{ media.name }}</li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>Aucun média disponible actuellement.</p>
+{% endif %}
 
 {% endblock %}

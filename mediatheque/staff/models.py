@@ -1,5 +1,4 @@
 from django.db import models
-from django import forms
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.contrib.contenttypes.models import ContentType
@@ -18,7 +17,7 @@ class StaffBorrowItem(models.Model):
         related_name='staff_borrow_items'
     )
     media = models.ForeignKey(
-        'Media',
+        'MediaStaff',
         on_delete=models.CASCADE,
         related_name='staff_borrows_media'
     )
@@ -43,7 +42,9 @@ class StaffBorrowItem(models.Model):
         if active_borrows.count() >= 3:
             return False
         overdue_borrows = active_borrows.filter(due_date__lt=timezone.now())
-        return not overdue_borrows.exists()
+        if overdue_borrows.exists():
+            return False  # L'utilisateur a des emprunts en retard
+        return True
 
     class Meta:
         indexes = [
@@ -58,8 +59,24 @@ class MediaStaff(models.Model):
     is_available = models.BooleanField(default=True)
     can_borrow = models.BooleanField(default=True)
 
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField(null=True, blank=True)
+    content_object = GenericForeignKey('content_type', 'object_id')
+
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+
+        if not self.content_type_id:
+            self.content_type = ContentType.objects.get_for_model(self.__class__)
+
+        super().save(*args, **kwargs)  # Sauvegarde initiale (crée self.id)
+
+        if is_new and not self.object_id:
+            self.object_id = self.id
+            super().save(update_fields=['object_id'])  # Update rapide sur object_id
 
     def is_borrowable_by(self, user):
         if not self.is_available or not self.can_borrow:
@@ -81,40 +98,33 @@ class MediaStaff(models.Model):
         pass
 
 
-class Media(MediaStaff):
-    pass
-
-
-# Modèles spécifiques : Livre, DVD, CD, Jeu de Plateau
 class BookStaff(MediaStaff):
     author = models.CharField(max_length=200)
     available = models.BooleanField(default=True)
-
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
-    content_object = GenericForeignKey('content_type', 'object_id')
 
     def save(self, *args, **kwargs):
         if not self.media_type:
             self.media_type = 'book'
 
-        self.content_type = ContentType.objects.get_for_model(BookStaff)
+        # Assurez-vous que content_type et object_id sont définis avant de sauvegarder
+        if not self.id:
+            super().save(*args, **kwargs)
+            self.content_type = ContentType.objects.get_for_model(BookStaff)
+            self.object_id = self.id
+            super().save(update_fields=['content_type', 'object_id'])
 
-        self.object_id = self.id
-        super().save(*args, **kwargs)
+        else:
+            super().save(*args, **kwargs)
 
 
 class DVDStaff(MediaStaff):
     producer = models.CharField(max_length=200)
 
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
-    content_object = GenericForeignKey('content_type', 'object_id')
-
     def save(self, *args, **kwargs):
         if not self.media_type:
             self.media_type = 'dvd'
-        self.content_type = ContentType.objects.get_for_model(DVDStaff)
+        if not self.id:
+            self.content_type = ContentType.objects.get_for_model(DVDStaff)
         self.object_id = self.id
         super().save(*args, **kwargs)
 
@@ -122,15 +132,12 @@ class DVDStaff(MediaStaff):
 class CDStaff(MediaStaff):
     artist = models.CharField(max_length=200)
 
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
-    content_object = GenericForeignKey('content_type', 'object_id')
-
     def save(self, *args, **kwargs):
         if not self.media_type:
             self.media_type = 'cd'
-        self.content_type = ContentType.objects.get_for_model(CDStaff)
-        self.object_id = self.id  # Assurez-vous de définir object_id correctement
+        if not self.id:
+            self.content_type = ContentType.objects.get_for_model(CDStaff)
+        self.object_id = self.id
         super().save(*args, **kwargs)
 
 
@@ -139,26 +146,24 @@ class BoardGameStaff(MediaStaff):
     is_visible = models.BooleanField(default=True)
     game_type = models.CharField(max_length=100, blank=True, null=True)
 
-    # Champs nécessaires pour le GenericForeignKey
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
-    content_object = GenericForeignKey('content_type', 'object_id')
-
     def __str__(self):
         return self.name
 
     def toggle_availability(self):
+        # Vous pouvez aussi utiliser cette méthode pour rendre un jeu visible
         if not StaffBorrowItem.objects.filter(media=self, is_returned=False).exists():
-            self.is_available = not self.is_available
-            self.save(update_fields=['is_available'])
+            self.is_visible = not self.is_visible
+            self.save(update_fields=['is_visible'])
 
     def is_borrowable_by(self, user):
-        return False
+        return False  # Les jeux de société ne sont pas empruntables
 
     def save(self, *args, **kwargs):
         if not self.media_type:
             self.media_type = 'board_game'
-        self.can_borrow = False  # Ne permet pas l'emprunt des jeux de plateau
-        self.content_type = ContentType.objects.get_for_model(BoardGameStaff)
-        self.object_id = self.id
+        self.can_borrow = False  # Pas empruntable par défaut
+
+        if not self.id:
+            self.content_type = ContentType.objects.get_for_model(BoardGameStaff)
+            self.object_id = self.id
         super().save(*args, **kwargs)
