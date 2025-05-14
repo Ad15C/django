@@ -7,28 +7,13 @@ from .forms import CustomUserCreationForm, LoginForm, EditProfileForm
 from django.utils import timezone
 from mediatheque.staff.models import MediaStaff, StaffBorrowItem, BookStaff, CDStaff, DVDStaff, BoardGameStaff
 from django.contrib.auth import get_user_model
-from functools import wraps
 from django.core.paginator import Paginator
 from django.http import HttpResponseForbidden
-from .decorators import role_required
+from mediatheque.authentification.decorators import role_required
 
 logger = logging.getLogger(__name__)
 
 User = get_user_model()
-
-
-def role_required(role):
-    def decorator(view_func):
-        @wraps(view_func)
-        def _wrapped_view(request, *args, **kwargs):
-            if request.user.role != role:
-                messages.error(request, "Vous n'avez pas l'autorisation d'accéder à cette page.")
-                return redirect('mediatheque.authentification:home')
-            return view_func(request, *args, **kwargs)
-
-        return _wrapped_view
-
-    return decorator
 
 
 @login_required
@@ -114,10 +99,7 @@ def edit_profile(request, user_id):
 @login_required
 @role_required(User.CLIENT)
 def client_dashboard(request):
-    if request.user.role != User.CLIENT:
-        return HttpResponseForbidden("Access Denied")
-
-        # Emprunts en cours pour cet utilisateur
+    # Emprunts en cours pour cet utilisateur
     borrows = StaffBorrowItem.objects.filter(user=request.user, is_returned=False).select_related('media')
 
     # Message si aucun emprunt

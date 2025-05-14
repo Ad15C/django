@@ -55,7 +55,6 @@ def test_client_dashboard_access_authorized(client_user):
 
 @pytest.mark.django_db
 def test_client_dashboard_access_forbidden(client, django_user_model):
-    # Créer un utilisateur STAFF (c'est ici qu'il manque email !)
     staff_user = django_user_model.objects.create_user(
         username='staffuser',
         email='staffuser@example.com',
@@ -63,13 +62,8 @@ def test_client_dashboard_access_forbidden(client, django_user_model):
         role=User.STAFF
     )
     client.login(username='staffuser', password='testpass123')
-
     response = client.get(reverse('mediatheque.authentification:espace_client'))
-
-    # Ton assert (302 ou 403 selon ta logique)
-    assert response.status_code == 302
-    assert response.url == '/auth/home/'  # adapte l'URL si nécessaire
-
+    assert response.status_code == 403  # Forbidden
 
 
 @pytest.mark.django_db
@@ -78,11 +72,7 @@ def test_client_dashboard_shows_borrows_and_media(client_user, borrow_item, medi
     c.login(username='client1', password='testpass123')
     url = reverse('mediatheque.authentification:espace_client')
     response = c.get(url)
-
-    # Vérifie emprunts affichés
     assert b'Media 1' in response.content  # L’emprunt en cours
-
-    # Vérifie médias disponibles
     assert b'Media 1' in response.content
     assert b'Media 2' in response.content
 
@@ -94,4 +84,5 @@ def test_client_dashboard_no_borrows_message(client_user, media_items):
     url = reverse('mediatheque.authentification:espace_client')
     response = c.get(url)
 
-    assert b'Aucune r\xc3\xa9servation en cours' in response.content  # UTF-8 encoding for é
+    # Compare the decoded content with the string
+    assert 'Aucune réservation en cours' in response.content.decode('utf-8')

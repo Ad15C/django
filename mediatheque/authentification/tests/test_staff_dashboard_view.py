@@ -21,8 +21,8 @@ def test_staff_dashboard(client):
     client.login(username="staffuser", password="testpass")
 
     # Création de plusieurs médias de chaque type : Livre, CD, DVD, et Board Game
-    book1 = BookStaff.objects.create(name="Book 1", author="Author 1", available=True, can_borrow=True)
-    book2 = BookStaff.objects.create(name="Book 2", author="Author 2", available=True, can_borrow=True)
+    book1 = BookStaff.objects.create(name="Book 1", author="Author 1", is_available=True, can_borrow=True)
+    book2 = BookStaff.objects.create(name="Book 2", author="Author 2", is_available=True, can_borrow=True)
 
     # Assurez-vous que les champs content_type et object_id sont définis après la création
     book1.content_type = ContentType.objects.get_for_model(BookStaff)

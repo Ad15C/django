@@ -34,7 +34,7 @@ class CDForm(forms.ModelForm):
 class BoardGameForm(forms.ModelForm):
     class Meta:
         model = BoardGameStaff
-        fields = ['name', 'is_available', 'can_borrow', 'creators', 'game_type']
+        fields = ['name', 'is_available', 'creators', 'game_type']
 
 
 # Member form
@@ -54,34 +54,23 @@ class BorrowMediaForm(forms.ModelForm):
             'due_date': forms.HiddenInput(),
         }
 
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+
     def clean_media(self):
         media = self.cleaned_data['media']
 
-        # Vérifier si le média est une instance de MediaStaff
         if not isinstance(media, MediaStaff):
             raise forms.ValidationError("Le média spécifié n'est pas valide.")
 
-        # Vérifications spécifiques selon le type de média
         if isinstance(media, BoardGameStaff):
             raise forms.ValidationError("Les jeux de société ne peuvent pas être empruntés.")
 
-        # Validation pour les livres
-        if isinstance(media, BookStaff):
-            if not media.is_available:
-                raise forms.ValidationError("Le livre n'est pas disponible pour emprunt.")
-
-        # Validation pour les DVD
-        if isinstance(media, DVDStaff):
-            if not media.is_available:
-                raise forms.ValidationError("Le DVD n'est pas disponible pour emprunt.")
-
-        # Validation pour les CDs
-        if isinstance(media, CDStaff):
-            if not media.is_available:
-                raise forms.ValidationError("Le CD n'est pas disponible pour emprunt.")
-
-        # Validation générale pour tout type de MediaStaff
         if not media.is_available:
-            raise forms.ValidationError(f"Le média {media.__class__.__name__} n'est pas disponible pour emprunt.")
+            raise forms.ValidationError(f"Le média {media.name} n'est pas disponible pour emprunt.")
+
+        if self.user and not media.is_borrowable_by(self.user):
+            raise forms.ValidationError(f"Vous n'êtes pas autorisé à emprunter le média {media.name}.")
 
         return media

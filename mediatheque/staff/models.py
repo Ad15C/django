@@ -9,7 +9,6 @@ User = get_user_model()
 MAX_BORROW_DURATION_DAYS = 7
 
 
-# Modèle de base pour les emprunts
 class StaffBorrowItem(models.Model):
     user = models.ForeignKey(
         'authentification.CustomUser',
@@ -41,9 +40,8 @@ class StaffBorrowItem(models.Model):
         active_borrows = StaffBorrowItem.objects.filter(user=user, is_returned=False)
         if active_borrows.count() >= 3:
             return False
-        overdue_borrows = active_borrows.filter(due_date__lt=timezone.now())
-        if overdue_borrows.exists():
-            return False  # L'utilisateur a des emprunts en retard
+        if active_borrows.filter(due_date__lt=timezone.now()).exists():
+            return False
         return True
 
     class Meta:
@@ -52,7 +50,6 @@ class StaffBorrowItem(models.Model):
         ]
 
 
-# Modèle de base pour Media
 class MediaStaff(models.Model):
     name = models.CharField(max_length=200)
     media_type = models.CharField(max_length=50)
@@ -63,26 +60,30 @@ class MediaStaff(models.Model):
     object_id = models.PositiveIntegerField(null=True, blank=True)
     content_object = GenericForeignKey('content_type', 'object_id')
 
+    MEDIA_TYPE = None  # Définie dans les sous-classes
+
     def __str__(self):
         return self.name
 
     def save(self, *args, **kwargs):
         is_new = self.pk is None
 
+        if not self.media_type and self.MEDIA_TYPE:
+            self.media_type = self.MEDIA_TYPE
+
         if not self.content_type_id:
             self.content_type = ContentType.objects.get_for_model(self.__class__)
 
-        super().save(*args, **kwargs)  # Sauvegarde initiale (crée self.id)
+        super().save(*args, **kwargs)
 
         if is_new and not self.object_id:
             self.object_id = self.id
-            super().save(update_fields=['object_id'])  # Update rapide sur object_id
+            super().save(update_fields=['object_id'])
 
     def is_borrowable_by(self, user):
         if not self.is_available or not self.can_borrow:
             return False
-        current_borrow = StaffBorrowItem.objects.filter(media=self, is_returned=False).first()
-        if current_borrow:
+        if StaffBorrowItem.objects.filter(media=self, is_returned=False).exists():
             return False
         if user.role not in [User.CLIENT, User.STAFF]:
             return False
@@ -94,76 +95,39 @@ class MediaStaff(models.Model):
             staff_borrows_media__is_returned=False
         )
 
-    class Meta:
-        pass
-
 
 class BookStaff(MediaStaff):
     author = models.CharField(max_length=200)
-    available = models.BooleanField(default=True)
-
-    def save(self, *args, **kwargs):
-        if not self.media_type:
-            self.media_type = 'book'
-
-        # Assurez-vous que content_type et object_id sont définis avant de sauvegarder
-        if not self.id:
-            super().save(*args, **kwargs)
-            self.content_type = ContentType.objects.get_for_model(BookStaff)
-            self.object_id = self.id
-            super().save(update_fields=['content_type', 'object_id'])
-
-        else:
-            super().save(*args, **kwargs)
+    MEDIA_TYPE = 'book'
 
 
 class DVDStaff(MediaStaff):
     producer = models.CharField(max_length=200)
-
-    def save(self, *args, **kwargs):
-        if not self.media_type:
-            self.media_type = 'dvd'
-        if not self.id:
-            self.content_type = ContentType.objects.get_for_model(DVDStaff)
-        self.object_id = self.id
-        super().save(*args, **kwargs)
+    MEDIA_TYPE = 'dvd'
 
 
 class CDStaff(MediaStaff):
     artist = models.CharField(max_length=200)
-
-    def save(self, *args, **kwargs):
-        if not self.media_type:
-            self.media_type = 'cd'
-        if not self.id:
-            self.content_type = ContentType.objects.get_for_model(CDStaff)
-        self.object_id = self.id
-        super().save(*args, **kwargs)
+    MEDIA_TYPE = 'cd'
 
 
 class BoardGameStaff(MediaStaff):
     creators = models.CharField(max_length=100)
     is_visible = models.BooleanField(default=True)
     game_type = models.CharField(max_length=100, blank=True, null=True)
+    MEDIA_TYPE = 'board_game'
 
     def __str__(self):
         return self.name
 
     def toggle_availability(self):
-        # Vous pouvez aussi utiliser cette méthode pour rendre un jeu visible
         if not StaffBorrowItem.objects.filter(media=self, is_returned=False).exists():
             self.is_visible = not self.is_visible
             self.save(update_fields=['is_visible'])
 
     def is_borrowable_by(self, user):
-        return False  # Les jeux de société ne sont pas empruntables
+        return False  # Les jeux de société ne peuvent pas être empruntés
 
     def save(self, *args, **kwargs):
-        if not self.media_type:
-            self.media_type = 'board_game'
-        self.can_borrow = False  # Pas empruntable par défaut
-
-        if not self.id:
-            self.content_type = ContentType.objects.get_for_model(BoardGameStaff)
-            self.object_id = self.id
+        self.can_borrow = False  # Jamais empruntable
         super().save(*args, **kwargs)
