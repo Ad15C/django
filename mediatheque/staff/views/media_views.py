@@ -7,45 +7,53 @@ from mediatheque.staff.models import MediaStaff, StaffBorrowItem, BoardGameStaff
 from mediatheque.staff.forms import BorrowMediaForm, BookForm, DVDForm, CDForm, BoardGameForm
 from django.core.paginator import Paginator
 from django.http import HttpResponseForbidden
+from django.contrib.auth.decorators import login_required
+from mediatheque.staff.decorators import role_required
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 MAX_BORROW_DURATION_DAYS = 7
 
 
 @login_required
+@role_required(User.STAFF)
 def staff_dashboard(request):
-    if not request.user.is_staff_user:  # Vérifie que l'utilisateur est membre du personnel
-        return HttpResponseForbidden("Vous n'êtes pas autorisé à voir cette page.")
+    # Vérifie si l'utilisateur est un membre du personnel (staff)
+    if not request.user.is_staff_user:
+        return HttpResponseForbidden("Accès interdit")
 
     user = request.user
-    # Filtre les emprunts en cours pour cet utilisateur
+
+    # Filtrer les emprunts en cours pour cet utilisateur
     current_borrows = StaffBorrowItem.objects.filter(
         user=user,
         is_returned=False,
         due_date__gte=timezone.now()
     ).exclude(media__can_borrow=False).exclude(media__isnull=True)
 
-    for borrow in current_borrows:
-        print(f"Emprunt ID: {borrow.pk}, Média: {borrow.media.name}, Due Date: {borrow.due_date}")
-
-    # Filtre les emprunts en retard
+    # Filtrer les emprunts en retard
     overdue_borrows = StaffBorrowItem.objects.filter(
         user=user,
         is_returned=False,
         due_date__lt=timezone.now()
     ).exclude(media__can_borrow=False).exclude(media__isnull=True)
 
-    # Récupére tous les objets des modèles concrets (livres, CDs, DVDs, jeux de société)
+    # Récupérer tous les objets des modèles concrets (livres, CDs, DVDs, jeux de société)
     all_books = BookStaff.objects.all().order_by('name')
     all_cds = CDStaff.objects.all().order_by('name')
     all_dvds = DVDStaff.objects.all().order_by('name')
     all_boardgames = BoardGameStaff.objects.all().order_by('name')
 
-    # Combine tous les résultats dans une seule liste
+    # Combiner tous les résultats dans une seule liste
     all_media = list(all_books) + list(all_cds) + list(all_dvds) + list(all_boardgames)
+
+    # Pagination des médias
     paginator = Paginator(all_media, 10)  # 10 médias par page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
+    # Rendre le tableau de bord avec les emprunts et les médias paginés
     return render(request, 'authentification/staff_dashboard.html', {
         'current_borrows': current_borrows,
         'overdue_borrows': overdue_borrows,
