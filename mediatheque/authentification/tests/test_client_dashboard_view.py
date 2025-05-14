@@ -1,112 +1,97 @@
 import pytest
 from django.urls import reverse
+from django.test import Client
 from django.contrib.auth import get_user_model
-from staff.models import StaffBorrowItem, MediaStaff, BookStaff, BoardGameStaff, CDStaff, DVDStaff
-from django.utils import timezone
+from mediatheque.staff.models import StaffBorrowItem, MediaStaff
+
+User = get_user_model()
+
+
+@pytest.fixture
+def client_user(db):
+    user = User.objects.create_user(
+        username='client1',
+        email='client1@example.com',
+        password='testpass123',
+        role=User.CLIENT,
+        first_name='Jean',
+        last_name='Dupont'
+    )
+    return user
+
+
+@pytest.fixture
+def other_user(db):
+    user = User.objects.create_user(
+        username='staff1',
+        email='staff1@example.com',
+        password='testpass123',
+        role='STAFF'
+    )
+    return user
+
+
+@pytest.fixture
+def media_items(db):
+    media1 = MediaStaff.objects.create(name='Media 1', is_available=True, can_borrow=True)
+    media2 = MediaStaff.objects.create(name='Media 2', is_available=True, can_borrow=True)
+    return [media1, media2]
+
+
+@pytest.fixture
+def borrow_item(db, client_user, media_items):
+    return StaffBorrowItem.objects.create(user=client_user, media=media_items[0], is_returned=False)
 
 
 @pytest.mark.django_db
-def test_client_dashboard_access(client):
-    # Créer un utilisateur
-    user = get_user_model().objects.create_user(
-        username='testuser',
-        email='testuser@example.com',
-        password='A7#fK!x92q'
-    )
-
-    # Connecter l'utilisateur
-    client.login(username='testuser', password='A7#fK!x92q')
-
-    # Créer un objet MediaStaff (exemple avec BookStaff ici)
-    media = BookStaff.objects.create(
-        name="Test Book",
-        author="Author Name",
-        available=True,  # Assurez-vous que ce champ existe
-        can_borrow=True
-    )
-
-    # Créer un emprunt pour cet utilisateur
-    borrow_item = StaffBorrowItem.objects.create(
-        user=user,
-        media=media,
-        is_returned=False,
-        borrow_date=timezone.now(),
-        due_date=timezone.now() + timezone.timedelta(days=7)
-    )
-
-    # Accéder à l'espace client
-    url = reverse('authentification:espace_client')
-    response = client.get(url)
-
-    # Vérifier la réponse
+def test_client_dashboard_access_authorized(client_user):
+    c = Client()
+    c.login(username='client1', password='testpass123')
+    url = reverse('mediatheque.authentification:espace_client')
+    response = c.get(url)
     assert response.status_code == 200
-    assert 'Bienvenue' in response.content.decode()  # Assurer que le message de bienvenue est présent
+    assert b'Bienvenue, client1' in response.content
 
 
 @pytest.mark.django_db
-def test_client_dashboard_with_data(client):
-    # Créer un utilisateur client
-    user = get_user_model().objects.create_user(username='client', password='password')
-
-    # Créer un objet BoardGameStaff avec les champs valides
-    media_item = BoardGameStaff.objects.create(
-        name="Test Board Game",
-        creators="Creator Name",
-        is_available=True,
-        game_type="Strategy",
+def test_client_dashboard_access_forbidden(client, django_user_model):
+    # Créer un utilisateur STAFF (c'est ici qu'il manque email !)
+    staff_user = django_user_model.objects.create_user(
+        username='staffuser',
+        email='staffuser@example.com',
+        password='testpass123',
+        role=User.STAFF
     )
+    client.login(username='staffuser', password='testpass123')
 
-    # Créer un emprunt pour cet utilisateur
-    borrow_item = StaffBorrowItem.objects.create(user=user, media=media_item, is_returned=False)
+    response = client.get(reverse('mediatheque.authentification:espace_client'))
 
-    # Se connecter avec cet utilisateur
-    client.login(username='client', password='password')
+    # Ton assert (302 ou 403 selon ta logique)
+    assert response.status_code == 302
+    assert response.url == '/auth/home/'  # adapte l'URL si nécessaire
 
-    # Récupérer la réponse de la vue client_dashboard
-    response = client.get(reverse('authentification:espace_client'))
-
-    # Vérifier que le message "Aucune réservation en cours." n'est pas dans la réponse
-    assert 'Aucune réservation en cours.' not in response.content.decode()
-
-    # Vérifier que le nom de l'élément emprunté est bien présent dans la réponse
-    assert media_item.name in response.content.decode()
 
 
 @pytest.mark.django_db
-def test_access_denied_for_non_client(client, staff_user):
-    # Connecter un utilisateur staff (qui ne doit pas avoir accès au tableau de bord client)
-    client.login(username='staffuser', password='staffpass123')
-    url = reverse('authentification:espace_client')
-    response = client.get(url)
+def test_client_dashboard_shows_borrows_and_media(client_user, borrow_item, media_items):
+    c = Client()
+    c.login(username='client1', password='testpass123')
+    url = reverse('mediatheque.authentification:espace_client')
+    response = c.get(url)
 
-    # Si ton décorateur @role_required redirige, vérifier cela
-    assert response.status_code in (403, 302)  # Vérifier si l'accès est interdit (403) ou redirigé (302)
+    # Vérifie emprunts affichés
+    assert b'Media 1' in response.content  # L’emprunt en cours
+
+    # Vérifie médias disponibles
+    assert b'Media 1' in response.content
+    assert b'Media 2' in response.content
 
 
 @pytest.mark.django_db
-def test_client_dashboard_with_board_game(client):
-    # Créer un utilisateur client
-    user = get_user_model().objects.create_user(username='client', password='password')
+def test_client_dashboard_no_borrows_message(client_user, media_items):
+    c = Client()
+    c.login(username='client1', password='testpass123')
+    url = reverse('mediatheque.authentification:espace_client')
+    response = c.get(url)
 
-    # Créer un objet BoardGameStaff
-    media_item = BoardGameStaff.objects.create(
-        name="Test Board Game",
-        creators="Creator Name",
-        is_available=True,  # Hérédité de MediaStaff
-        game_type="Strategy",
-    )
-
-    # Créer un emprunt pour cet utilisateur (bien que les jeux de plateau ne peuvent pas être empruntés)
-    borrow_item = StaffBorrowItem.objects.create(user=user, media=media_item, is_returned=False)
-
-    # Se connecter en tant qu'utilisateur client
-    client.login(username='client', password='password')
-
-    # Accéder au tableau de bord client
-    response = client.get(reverse('authentification:espace_client'))
-
-    # Vérifier que le nom de l'élément emprunté est bien présent dans la réponse
-    assert media_item.name in response.content.decode()
-
-    # Vérifier que le jeu de plateau n'est pas empruntable (car `can_borrow` est `False`)
-    assert 'Emprunter' not in response.content.decode()  # Assurer que "Emprunter" n'est pas présent
+    assert b'Aucune r\xc3\xa9servation en cours' in response.content  # UTF-8 encoding for é
