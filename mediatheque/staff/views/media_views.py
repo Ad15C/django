@@ -61,36 +61,33 @@ def staff_dashboard(request):
     })
 
 
+@login_required
+@role_required(User.STAFF)
 @permission_required('authentification.can_add_media', raise_exception=True)
 def add_media(request):
+    form_classes = {
+        'book': BookForm,
+        'dvd': DVDForm,
+        'cd': CDForm,
+        'board_game': BoardGameForm,
+    }
+
     if request.method == 'POST':
         media_type = request.POST.get('media_type')
+        form_class = form_classes.get(media_type)
 
-        # Vérifie quel type de média est sélectionné et instancie le bon formulaire
-        if media_type == 'book':
-            form = BookForm(request.POST)
-        elif media_type == 'dvd':
-            form = DVDForm(request.POST)
-        elif media_type == 'cd':
-            form = CDForm(request.POST)
-        elif media_type == 'board_game':
-            form = BoardGameForm(request.POST)
+        if form_class:
+            form = form_class(request.POST)
+            if form.is_valid():
+                form.save()
+                messages.success(request, f"{media_type.capitalize()} ajouté avec succès.")
+                return redirect('staff:media_liste')
+            else:
+                messages.error(request, "Erreur lors de l'ajout du média. Veuillez réessayer.")
         else:
             form = None
             messages.error(request, "Type de média invalide.")
-
-        # Sauvegarde le formulaire et message de succès
-        if form and form.is_valid():
-            form.save()  # Sauvegarde du formulaire
-            messages.success(request, f"{media_type.capitalize()} ajouté avec succès.")
-            return redirect('staff:media_liste')
-
-        else:
-            # Si le formulaire n'est pas valide, on ajoute un message d'erreur
-            messages.error(request, "Erreur lors de l'ajout du média. Veuillez réessayer.")
-
     else:
-        # Si c'est une requête GET, on initie un formulaire vide
         form = None
 
     return render(request, 'staff/media/add_media.html', {
