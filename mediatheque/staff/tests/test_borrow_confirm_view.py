@@ -5,6 +5,7 @@ from django.contrib.auth.models import Group, Permission
 from mediatheque.staff.models import MediaStaff, StaffBorrowItem
 from mediatheque.authentification.models import CustomUser
 
+
 @pytest.mark.django_db
 def test_confirm_borrow_view(client):
     # 1. Créer un utilisateur staff avec permission

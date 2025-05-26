@@ -212,7 +212,7 @@ def borrow_media(request, pk):
                     media.save()
 
                 messages.success(request, "Média emprunté avec succès !")
-                return redirect('staff:borrow_success', pk=borrow_item.pk)
+                return redirect('staff:succes_emprunt', pk=borrow_item.pk)
 
 
 
@@ -375,8 +375,8 @@ def return_media(request, pk):
         else:
             messages.error(request, "Ce média ne fait pas partie de cet emprunt.")
 
-        return redirect('staff:borrow_detail', pk=borrow_item.pk)  # Rediriger vers la page des détails de l'emprunt
+        return redirect('staff:detail_emprunt', pk=borrow_item.pk)  # Rediriger vers la page des détails de l'emprunt
 
     # Si l'utilisateur tente d'accéder à cette vue sans soumettre le formulaire (GET request)
     messages.error(request, "Veuillez sélectionner un média à retourner.")
-    return redirect('staff:borrow_detail', pk=borrow_item.pk)
+    return redirect('staff:detail_emprunt', pk=borrow_item.pk)
