@@ -171,6 +171,7 @@ def media_detail(request, pk):
 
 @login_required
 @role_required(User.STAFF)
+@permission_required('authentification.can_borrow_media', raise_exception=True)
 def borrow_media(request, pk):
     try:
         # Vérifie si l'utilisateur a la permission d'emprunter un média
@@ -258,6 +259,7 @@ def check_borrowing_conditions(request, user, media):
 # Succès de l'emprunt
 @login_required
 @role_required(User.STAFF)
+@permission_required('authentification.can_borrow_media', raise_exception=True)
 def borrow_success(request, pk):
     # Récupére l'objet d'emprunt avec le pk
     borrow_item = get_object_or_404(StaffBorrowItem, pk=pk)
@@ -274,20 +276,30 @@ def borrow_success(request, pk):
 @role_required(User.STAFF)
 @permission_required('authentification.can_view_borrow', raise_exception=True)
 def borrow_detail(request, pk):
-    print(f"PK reçu : {pk}")  # Debug pour vérifier que pk est bien passé
     try:
         borrow_item = StaffBorrowItem.objects.get(pk=pk)
     except StaffBorrowItem.DoesNotExist:
-        messages.error(request, "L\'emprunt que vous cherchez n\'existe pas.")
+        messages.error(request, "L'emprunt que vous cherchez n'existe pas.")
         return redirect('staff:media_liste')
 
+    BORROWABLE_TYPES = ['Book', 'DVD', 'CD']
+
     media = borrow_item.media
+
+    if media.media_type in BORROWABLE_TYPES:
+        borrowable_media = [media]
+        media_to_display = media
+    else:
+        borrowable_media = []
+        media_to_display = None  # NE PAS passer un média non empruntable
+
     user = borrow_item.user
     is_late = borrow_item.due_date < timezone.now() and not borrow_item.is_returned
 
     context = {
         'borrow_item': borrow_item,
-        'media': media,
+        'media': media_to_display,
+        'borrowable_media': borrowable_media,
         'user': user,
         'is_late': is_late,
     }
