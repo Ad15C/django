@@ -25,9 +25,15 @@ class AuthentificationConfig(AppConfig):
                 ('can_add_media', 'Can add media'),
                 ('can_return_media', 'Can return media'),
                 ('can_borrow_media', 'Can borrow media'),
+                ('can_view_borrow', 'Can view borrow details'),
                 ('can_view_media', 'Can view media'),
             ]
 
+            permissions_client = [
+                ('can_view_media', 'Can view media'),
+            ]
+
+            # Créer et assigner les permissions pour le staff
             for codename, name in permissions_staff:
                 perm, _ = Permission.objects.get_or_create(
                     codename=codename,
@@ -36,7 +42,16 @@ class AuthentificationConfig(AppConfig):
                 )
                 staff_group.permissions.add(perm)
 
-                if codename == 'can_view_media':
+            # S'assurer que les permissions client existent et les assigner
+            for codename, name in permissions_client:
+                # On suppose ici que la permission a déjà été créée dans permissions_staff
+                try:
+                    perm = Permission.objects.get(
+                        codename=codename,
+                        content_type=content_type,
+                    )
                     client_group.permissions.add(perm)
+                except Permission.DoesNotExist:
+                    pass  # ou logguer une erreur si besoin
 
         post_migrate.connect(create_groups_and_permissions, sender=apps.get_app_config('authentification'))

@@ -9,6 +9,7 @@
     <h2>Détails de l'emprunt</h2>
 
     <ul class="list-group">
+        {% if media %}
         <li class="list-group-item"><strong>Média :</strong> {{ media.name }}</li>
         <li class="list-group-item"><strong>Type :</strong> {{ media.media_type }}</li>
         <li class="list-group-item"><strong>Emprunté par :</strong> {{ user.get_full_name }}</li>
@@ -22,23 +23,30 @@
             <span class="text-success">Dans les temps</span>
             {% endif %}
         </li>
+        {% else %}
+        <li class="list-group-item text-muted">Média non empruntable ou non disponible.</li>
+        {% endif %}
     </ul>
 
-    <!-- Liste des médias empruntés -->
-    <h3>Médias empruntés :</h3>
+    <h3>Médias empruntables :</h3>
+
+    {% if borrowable_media %}
     <form action="{% url 'staff:retourner_media' pk=borrow_item.pk %}" method="POST">
         {% csrf_token %}
         <div class="form-group">
-            <label for="media">Sélectionner un média à retourner :</label>
-            <select name="media" id="media" class="form-control">
-                {% for media in borrow_item.media.all %}
-                <option value="{{ media.pk }}">{{ media.name }} - {{ media.media_type }}</option>
+            <label for="media">Sélectionner un ou plusieurs médias à retourner :</label>
+            <select name="media" id="media" class="form-control" multiple>
+                {% for media_item in borrowable_media %}
+                <option value="{{ media_item.pk }}">{{ media_item.name }} - {{ media_item.media_type }}</option>
                 {% endfor %}
             </select>
         </div>
-
-        <button type="submit" class="btn btn-danger mt-3">Retourner le média sélectionné</button>
+        <button type="submit" class="btn btn-danger mt-3">Retourner le(s) média(s) sélectionné(s)</button>
     </form>
+    {% else %}
+    <p class="text-muted">Aucun média empruntable disponible.</p>
+    {% endif %}
+
 
     <a href="{% url 'staff:media_liste' %}" class="btn btn-primary mt-3">Retour à la liste</a>
 </div>
