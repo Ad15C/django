@@ -256,6 +256,46 @@ def check_borrowing_conditions(request, user, media):
     return False
 
 
+# Confirmation de l'emprunt
+@login_required
+@role_required(User.STAFF)
+@permission_required('authentification.can_borrow_media', raise_exception=True)
+def confirm_borrow(request, pk):
+    media = get_object_or_404(MediaStaff, id=pk)
+
+    # Date limite de retour fixée à 7 jours à partir d'aujourd'hui
+    due_date = timezone.now() + timezone.timedelta(days=7)
+
+    if request.method == 'POST':
+        # On transmet request.POST ET l'utilisateur au form
+        form = BorrowMediaForm(request.POST, user=request.user)
+        if form.is_valid():
+            # Le form nettoyé contient media et due_date valides
+            borrow_item = form.save(commit=False)  # Ne pas sauvegarder tout de suite
+            borrow_item.user = request.user  # Attribuer l'utilisateur à l'emprunt
+            borrow_item.save()  # Sauvegarder en base
+
+            # Ici, tu peux aussi changer la disponibilité du média
+            media.is_available = False
+            media.save()
+
+            # Redirection après confirmation pour éviter le repost du formulaire
+            return redirect('staff:espace_staff')
+    else:
+        # GET : initialisation du formulaire avec les champs cachés media et due_date
+        form = BorrowMediaForm(initial={
+            'media': media,
+            'due_date': due_date,
+        }, user=request.user)
+
+    context = {
+        'media': media,
+        'due_date': due_date,
+        'form': form,
+    }
+    return render(request, 'staff/media/borrow_confirm.html', context)
+
+
 # Succès de l'emprunt
 @login_required
 @role_required(User.STAFF)
