@@ -70,7 +70,7 @@ def test_staff_dashboard_forbidden_for_non_staff_user(client):
     client.login(username='regularuser', password='testpass')
 
     # Appel de la vue
-    url = reverse('staff:espace_staff')  # Utiliser le bon nom d'URL
+    url = reverse('staff:espace_staff')
     response = client.get(url)
 
     # L'utilisateur non-staff doit recevoir une 403 Forbidden

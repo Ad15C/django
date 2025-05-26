@@ -17,7 +17,7 @@ urlpatterns = [
     path('emprunter/<int:pk>/', media_views.borrow_media, name='emprunter'),
     path('emprunter/<int:pk>/detail/', media_views.borrow_detail, name='detail_emprunt'),
     path('emprunter/confirmer/<int:pk>/', media_views.confirm_borrow, name='confirmer_emprunt'),
-    path('emprunter/<int:pk>/succes/', media_views.borrow_success, name='borrow_success'),
+    path('emprunter/<int:pk>/succes/', media_views.borrow_success, name='succes_emprunt'),
     path('media/<int:pk>/retourner/', media_views.return_media, name='retourner_media'),
 
     # Membres
