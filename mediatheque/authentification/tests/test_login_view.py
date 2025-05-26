@@ -11,7 +11,7 @@ def test_login_view_get():
     Test que la vue de connexion affiche le formulaire.
     """
     client = Client()
-    response = client.get(reverse('mediatheque.authentification:connexion'))
+    response = client.get(reverse('authentification:connexion'))
 
     assert response.status_code == 200
     assert 'form' in response.context
@@ -28,12 +28,12 @@ def test_login_view_post_valid_credentials():
                                     role=User.CLIENT)
 
     client = Client()
-    response = client.post(reverse('mediatheque.authentification:connexion'),
+    response = client.post(reverse('authentification:connexion'),
                            {'username': 'testuser', 'password': 'password123'})
 
     # Vérifier la redirection vers l'espace client
     assert response.status_code == 302
-    assert response.url == reverse('mediatheque.authentification:espace_client')
+    assert response.url == reverse('authentification:espace_client')
 
     # Vérifier si le message de succès est affiché
     messages = list(get_messages(response.wsgi_request))
@@ -52,7 +52,7 @@ def test_login_view_post_invalid_credentials():
                              role=User.CLIENT)
 
     client = Client()
-    response = client.post(reverse('mediatheque.authentification:connexion'),
+    response = client.post(reverse('authentification:connexion'),
                            {'username': 'testuser', 'password': 'wrongpassword'})
 
     # Vérifier que la connexion échoue et que l'erreur est affichée dans les messages
@@ -72,12 +72,12 @@ def test_login_redirect_for_staff_user():
                                           role=User.STAFF)
 
     client = Client()
-    response = client.post(reverse('mediatheque.authentification:connexion'),
+    response = client.post(reverse('authentification:connexion'),
                            {'username': 'staffuser', 'password': 'password123'})
 
     # Vérifier la redirection vers l'espace staff
     assert response.status_code == 302
-    assert response.url == reverse('mediatheque.authentification:espace_staff')
+    assert response.url == reverse('authentification:espace_staff')
 
 
 @pytest.mark.django_db
@@ -91,7 +91,7 @@ def test_login_redirect_for_admin_user():
                                           role=User.ADMIN)
 
     client = Client()
-    response = client.post(reverse('mediatheque.authentification:connexion'),
+    response = client.post(reverse('authentification:connexion'),
                            {'username': 'adminuser', 'password': 'password123'})
 
     # Vérifier la redirection vers l'interface d'administration
