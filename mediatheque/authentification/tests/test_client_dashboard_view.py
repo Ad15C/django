@@ -47,7 +47,7 @@ def borrow_item(db, client_user, media_items):
 def test_client_dashboard_access_authorized(client_user):
     c = Client()
     c.login(username='client1', password='testpass123')
-    url = reverse('mediatheque.authentification:espace_client')
+    url = reverse('authentification:espace_client')
     response = c.get(url)
     assert response.status_code == 200
     assert b'Bienvenue, client1' in response.content
@@ -62,7 +62,7 @@ def test_client_dashboard_access_forbidden(client, django_user_model):
         role=User.STAFF
     )
     client.login(username='staffuser', password='testpass123')
-    response = client.get(reverse('mediatheque.authentification:espace_client'))
+    response = client.get(reverse('authentification:espace_client'))
     assert response.status_code == 403  # Forbidden
 
 
@@ -70,7 +70,7 @@ def test_client_dashboard_access_forbidden(client, django_user_model):
 def test_client_dashboard_shows_borrows_and_media(client_user, borrow_item, media_items):
     c = Client()
     c.login(username='client1', password='testpass123')
-    url = reverse('mediatheque.authentification:espace_client')
+    url = reverse('authentification:espace_client')
     response = c.get(url)
     assert b'Media 1' in response.content  # L’emprunt en cours
     assert b'Media 1' in response.content
@@ -81,7 +81,7 @@ def test_client_dashboard_shows_borrows_and_media(client_user, borrow_item, medi
 def test_client_dashboard_no_borrows_message(client_user, media_items):
     c = Client()
     c.login(username='client1', password='testpass123')
-    url = reverse('mediatheque.authentification:espace_client')
+    url = reverse('authentification:espace_client')
     response = c.get(url)
 
     # Compare the decoded content with the string

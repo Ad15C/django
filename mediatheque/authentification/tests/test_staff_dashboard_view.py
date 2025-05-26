@@ -119,7 +119,7 @@ def test_staff_dashboard(client):
     )
 
     # Appel de la vue
-    response = client.get(reverse('mediatheque.authentification:espace_staff'))
+    response = client.get(reverse('authentification:espace_staff'))
 
     # Vérifie que le code de statut de la réponse est 200
     assert response.status_code == 200

@@ -10,6 +10,8 @@ from django.http import HttpResponseForbidden
 from django.contrib.auth.decorators import login_required
 from mediatheque.staff.decorators import role_required
 from django.contrib.auth import get_user_model
+from django.core.exceptions import PermissionDenied
+from django.contrib import messages
 
 User = get_user_model()
 
@@ -83,7 +85,7 @@ def add_media(request):
                 messages.success(request, f"{media_type.capitalize()} ajouté avec succès.")
                 return redirect('staff:media_liste')
             else:
-                messages.error(request, "Erreur lors de l'ajout du média. Veuillez réessayer.")
+                messages.error(request, "Erreur lors de l\'ajout du média. Veuillez réessayer.")
         else:
             form = None
             messages.error(request, "Type de média invalide.")
@@ -95,6 +97,8 @@ def add_media(request):
     })
 
 
+@login_required
+@role_required(User.STAFF)
 @permission_required('authentification.can_view_media', raise_exception=True)
 def media_list(request):
     available_filter = request.GET.get('available', None)
@@ -157,66 +161,103 @@ def media_list(request):
     return render(request, 'staff/media/media_list.html', context)
 
 
+@login_required
+@role_required(User.STAFF)
 @permission_required('authentification.can_view_media', raise_exception=True)
 def media_detail(request, pk):
     media = get_object_or_404(MediaStaff, pk=pk)
     return render(request, 'staff/media/media_detail.html', {'media': media})
 
 
-@permission_required('authentification.can_borrow_media', raise_exception=True)
+@login_required
+@role_required(User.STAFF)
 def borrow_media(request, pk):
-    media = get_object_or_404(MediaStaff, pk=pk)
+    try:
+        # Vérifie si l'utilisateur a la permission d'emprunter un média
+        if not request.user.has_perm('authentification.can_borrow_media'):
+            raise PermissionDenied
 
-    # Vérifie si c'est un jeu de société
-    if isinstance(media, BoardGameStaff):
-        messages.error(request, "Les jeux de société ne peuvent pas être empruntés.")
-        return redirect('staff:media_liste')
+        # Vérifie si c'est un jeu de société
+        try:
+            media = BoardGameStaff.objects.get(pk=pk)
+        except BoardGameStaff.DoesNotExist:
+            media = get_object_or_404(MediaStaff, pk=pk)
 
+        if isinstance(media, BoardGameStaff):
+            messages.error(request, "Les jeux de société ne peuvent pas être empruntés.")
+            return redirect('staff:media_liste')
+
+        # Vérifie si l'utilisateur a des emprunts en retard ou a dépassé le nombre maximum d'emprunts
+        result = check_borrowing_conditions(request, request.user, media)
+        if result:
+            return result
+
+        # Calcule la date limite de retour
+        due_date = timezone.now() + timezone.timedelta(days=7)
+
+        # Utilise le formulaire d'emprunt
+        if request.method == 'POST':
+            form = BorrowMediaForm(request.POST, user=request.user)
+            if form.is_valid():
+                with transaction.atomic():
+                    due_date = form.cleaned_data['due_date']
+                    borrow_item = StaffBorrowItem.objects.create(
+                        user=request.user,
+                        media=media,
+                        borrow_date=timezone.now(),
+                        due_date=due_date
+                    )
+                    media.is_available = False
+                    media.save()
+
+                messages.success(request, "Média emprunté avec succès !")
+                return redirect('staff:borrow_success', pk=borrow_item.pk)
+
+
+
+        else:
+            # Formulaire pré-rempli avec les informations du média
+            form = BorrowMediaForm(initial={'media': media, 'due_date': due_date})
+
+        # Retour page de confirmation avec le formulaire
+        return render(request, 'staff/media/borrow_confirm.html', {
+            'form': form,
+            'media': media,
+            'due_date': due_date,
+        })
+
+    except PermissionDenied:
+        messages.error(request, "Vous n\'avez pas la permission d\'emprunter ce média.")
+        return redirect('staff:espace_staff')
+
+
+def has_overdue_borrowings(user):
+    """Vérifie si l'utilisateur a des emprunts en retard"""
+    return StaffBorrowItem.objects.filter(user=user, is_returned=False, due_date__lt=timezone.now()).exists()
+
+
+def has_max_active_borrows(user):
+    """Vérifie si l'utilisateur a atteint la limite de 3 emprunts actifs"""
+    return StaffBorrowItem.objects.filter(user=user, return_date__isnull=True).count() >= 3
+
+
+def check_borrowing_conditions(request, user, media):
     # Vérifie si l'utilisateur a des emprunts en retard
-    if StaffBorrowItem.objects.filter(user=request.user, is_returned=False, due_date__lt=timezone.now()).exists():
-        messages.error(request, "Vous avez des emprunts en retard. Impossible d'emprunter de nouveaux médias.")
+    if has_overdue_borrowings(user):
+        messages.error(request, "Vous avez des emprunts en retard. Impossible d\'emprunter de nouveaux médias.")
         return redirect('staff:media_liste')
 
     # Vérifie si l'utilisateur a déjà 3 emprunts actifs
-    if StaffBorrowItem.objects.filter(user=request.user, return_date__isnull=True).count() >= 3:
+    if has_max_active_borrows(user):
         messages.error(request, "Vous avez atteint la limite de 3 emprunts.")
         return redirect('staff:media_liste')
 
-    # Calcule la date limite de retour
-    due_date = timezone.now() + timezone.timedelta(days=7)
-
-    # Utilise le formulaire d'emprunt
-    if request.method == 'POST':
-        form = BorrowMediaForm(request.POST)
-        if form.is_valid():
-            with transaction.atomic():
-                # Crée l'objet d'emprunt
-                borrow_item = StaffBorrowItem.objects.create(
-                    user=request.user,
-                    media=media,
-                    borrow_date=timezone.now(),
-                    due_date=due_date
-                )
-                # Marque le média comme non disponible
-                media.is_available = False
-                media.save()
-
-            # Redirection vers la page de succès
-            return redirect('staff:borrow_success', pk=borrow_item.pk)  # Passer l'identifiant de l'emprunt
-
-    else:
-        # Formulaire pré-rempli avec les informations du média
-        form = BorrowMediaForm(initial={'media': media, 'due_date': due_date})
-
-    # Retour  page de confirmation avec le formulaire
-    return render(request, 'staff/media/borrow_confirm.html', {
-        'form': form,
-        'media': media,
-        'due_date': due_date,
-    })
+    return False
 
 
 # Succès de l'emprunt
+@login_required
+@role_required(User.STAFF)
 def borrow_success(request, pk):
     # Récupére l'objet d'emprunt avec le pk
     borrow_item = get_object_or_404(StaffBorrowItem, pk=pk)
@@ -229,13 +270,15 @@ def borrow_success(request, pk):
 
 
 # Détail d'un emprunt
+@login_required
+@role_required(User.STAFF)
 @permission_required('authentification.can_view_borrow', raise_exception=True)
 def borrow_detail(request, pk):
     print(f"PK reçu : {pk}")  # Debug pour vérifier que pk est bien passé
     try:
         borrow_item = StaffBorrowItem.objects.get(pk=pk)
     except StaffBorrowItem.DoesNotExist:
-        messages.error(request, "L'emprunt que vous cherchez n'existe pas.")
+        messages.error(request, "L\'emprunt que vous cherchez n\'existe pas.")
         return redirect('staff:media_liste')
 
     media = borrow_item.media
@@ -252,6 +295,8 @@ def borrow_detail(request, pk):
     return render(request, 'staff/media/borrow_detail.html', context)
 
 
+@login_required
+@role_required(User.STAFF)
 @permission_required('authentification.can_return_media', raise_exception=True)
 def return_media(request, pk):
     # Récupére l'élément d'emprunt
