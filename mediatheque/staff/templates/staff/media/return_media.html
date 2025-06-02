@@ -12,7 +12,7 @@
     <form method="post">
         {% csrf_token %}
         <button type="submit" class="btn btn-danger">Confirmer le retour</button>
-        <a href="{% url 'media_liste' %}" class="btn btn-secondary">Annuler</a>
+        <a href="{% url 'staff:media_liste' %}" class="btn btn-secondary">Annuler</a>
     </form>
 </div>
 {% endblock %}

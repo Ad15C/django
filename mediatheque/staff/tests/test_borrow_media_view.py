@@ -171,9 +171,8 @@ def test_user_without_permission_cannot_borrow_media(staff_user, media_item, cli
     client.login(username='staff', password='password123')
     due_date_str = make_due_date(7)
     response = client.post(url, data={'due_date': due_date_str})
-    expected_redirect_url = reverse('staff:espace_staff')
-    assert response.status_code == 302
-    assert response.url == expected_redirect_url
+    assert response.status_code == 403  # On attend un Forbidden
+
 
 
 @pytest.mark.django_db
