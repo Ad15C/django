@@ -21,7 +21,7 @@ urlpatterns = [
     path('media/<int:pk>/retourner/', media_views.return_media, name='retourner_media'),
 
     # Membres
-    path('membres/', member_views.members_list, name='liste_membres'),
+    path('membres/', member_views.member_list, name='liste_membres'),
     path('membres/creer/', member_views.create_member, name='creer_membre'),
     path('membres/<int:pk>/modifier/', member_views.update_member, name='modifier_membre'),
     path('membres/<int:pk>/detail/', member_views.member_detail, name='membre_detail'),

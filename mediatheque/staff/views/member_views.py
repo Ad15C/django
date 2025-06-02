@@ -17,13 +17,13 @@ class MemberForm(forms.ModelForm):
 
 # Liste des membres avec pagination
 @permission_required('authentification.can_view_members', raise_exception=True)
-def members_list(request):
+def member_list(request):
     members = User.objects.all()
     # Pagination
     page_number = request.GET.get('page', 1)
     paginator = Paginator(members, 10)  # 10 membres par page
     page_obj = paginator.get_page(page_number)
-    return render(request, 'staff/members_list.html', {'page_obj': page_obj})
+    return render(request, 'staff/members/member_list.html', {'page_obj': page_obj})
 
 
 # Créer un membre
