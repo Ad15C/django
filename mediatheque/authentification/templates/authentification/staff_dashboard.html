@@ -29,7 +29,12 @@
             <!-- Partie Membres -->
             <li class="list-group-item"><a href="{% url 'staff:liste_membres' %}">Liste des Membres</a></li>
             <li class="list-group-item"><a href="{% url 'staff:creer_membre' %}">Créer un Membre</a></li>
-            <li class="list-group-item"><a href="{% url 'staff:modifier_membre' 0 %}">Modifier un Membre</a></li>
+            {% if some_member %}
+            <a href="{% url 'staff:modifier_membre' some_member.pk %}">Modifier un Membre</a>
+            {% else %}
+            <span>Pas de membre sélectionné pour modification</span>
+            {% endif %}
+
             <li class="list-group-item"><a href="{% url 'staff:membre_detail' 0 %}">Détails d'un Membre</a></li>
         </ul>
     </div>
