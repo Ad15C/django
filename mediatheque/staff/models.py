@@ -55,6 +55,7 @@ class MediaStaff(models.Model):
     media_type = models.CharField(max_length=50)
     is_available = models.BooleanField(default=True)
     can_borrow = models.BooleanField(default=True)
+    description = models.TextField(blank=True, null=True)
 
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField(null=True, blank=True)
@@ -94,6 +95,13 @@ class MediaStaff(models.Model):
         return cls.objects.filter(is_available=True, can_borrow=True).exclude(
             staff_borrows_media__is_returned=False
         )
+
+    class Meta:
+        permissions = [
+            ("can_view_media", "Peut voir les détails d\’un média"),
+        ]
+        verbose_name = "Média"
+        verbose_name_plural = "Médias"
 
 
 class BookStaff(MediaStaff):

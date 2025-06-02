@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block return_link %}
+<a href="{% url 'staff:media_liste' %}">← Retour à la liste des médias</a>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Détails du média</h2>
+
+    <div class="card p-4 shadow rounded">
+        <h4>{{ media.name }}</h4>
+        <p><strong>Description :</strong> {{ media.description|default:"Aucune description." }}</p>
+        <p><strong>Statut :</strong>
+            {% if media.is_available %}
+                <span class="badge bg-success">Disponible</span>
+            {% else %}
+                <span class="badge bg-danger">Indisponible</span>
+            {% endif %}
+        </p>
+        <p><strong>ID :</strong> {{ media.pk }}</p>
+    </div>
+</div>
+{% endblock %}

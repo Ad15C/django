@@ -163,7 +163,7 @@ def media_list(request):
 
 @login_required
 @role_required(User.STAFF)
-@permission_required('authentification.can_view_media', raise_exception=True)
+@permission_required('staff.can_view_media', raise_exception=True)
 def media_detail(request, pk):
     media = get_object_or_404(MediaStaff, pk=pk)
     return render(request, 'staff/media/media_detail.html', {'media': media})
