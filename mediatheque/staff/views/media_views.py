@@ -99,7 +99,7 @@ def add_media(request):
 
 @login_required
 @role_required(User.STAFF)
-@permission_required('authentification.can_view_media', raise_exception=True)
+@permission_required('staff.can_view_media', raise_exception=True)
 def media_list(request):
     available_filter = request.GET.get('available', None)
     only_borrowable = request.GET.get('only_borrowable', '')
@@ -131,10 +131,10 @@ def media_list(request):
 
     # Filtrage par empruntabilité
     if only_borrowable == "true":
-        all_books = all_books.filter(is_borrowable=True)
-        all_cds = all_cds.filter(is_borrowable=True)
-        all_dvds = all_dvds.filter(is_borrowable=True)
-        all_boardgames = all_boardgames.filter(is_borrowable=True)
+        all_books = all_books.filter(can_borrow=True)
+        all_cds = all_cds.filter(can_borrow=True)
+        all_dvds = all_dvds.filter(can_borrow=True)
+        all_boardgames = all_boardgames.filter(can_borrow=True)
 
     # Combine toutes les listes d'objets dans une seule
     all_media = list(all_books) + list(all_cds) + list(all_dvds) + list(all_boardgames)
