@@ -4,38 +4,35 @@ from django.contrib.auth.models import Permission
 from mediatheque.authentification.models import CustomUser
 
 
-@pytest.mark.django_db
-def test_create_member_get(client):
+@pytest.fixture
+def staff_user_with_permission():
     user = CustomUser.objects.create_user(
-        email='user1@example.com',
-        username='user1',
+        email='staff@example.com',
+        username='staffuser',
         password='pass123',
-        is_staff=True
+        is_staff=True,
     )
+    user.role = 'staff'
+    user.save()
     permission = Permission.objects.get(codename='can_add_member')
     user.user_permissions.add(permission)
-    client.force_login(user)
+    return user
 
+
+@pytest.mark.django_db
+def test_create_member_get(client, staff_user_with_permission):
+    client.force_login(staff_user_with_permission)
     url = reverse('staff:creer_membre')
     response = client.get(url)
 
-    content = response.content.decode('utf-8')  # Décodage du contenu bytes en string
+    content = response.content.decode('utf-8')
     assert response.status_code == 200
     assert 'Créer un Membre' in content
 
 
 @pytest.mark.django_db
-def test_create_member_post_valid(client):
-    user = CustomUser.objects.create_user(
-        email='admin@example.com',
-        username='admin',
-        password='adminpass123',
-        is_staff=True
-    )
-    permission = Permission.objects.get(codename='can_add_member')
-    user.user_permissions.add(permission)
-    client.force_login(user)
-
+def test_create_member_post_valid(client, staff_user_with_permission):
+    client.force_login(staff_user_with_permission)
     url = reverse('staff:creer_membre')
     data = {
         'username': 'newmember',
@@ -52,17 +49,8 @@ def test_create_member_post_valid(client):
 
 
 @pytest.mark.django_db
-def test_create_member_post_invalid(client):
-    user = CustomUser.objects.create_user(
-        email='user3@example.com',
-        username='user3',
-        password='pass123',
-        is_staff=True
-    )
-    permission = Permission.objects.get(codename='can_add_member')
-    user.user_permissions.add(permission)
-    client.force_login(user)
-
+def test_create_member_post_invalid(client, staff_user_with_permission):
+    client.force_login(staff_user_with_permission)
     url = reverse('staff:creer_membre')
     data = {
         'username': '',  # invalide car vide
@@ -83,6 +71,8 @@ def test_create_member_permission_denied(client):
         password='pass123',
         is_staff=True
     )
+    user.role = 'staff'
+    user.save()
     # Pas de permission ajoutée volontairement
     client.force_login(user)
 
@@ -91,18 +81,10 @@ def test_create_member_permission_denied(client):
 
     assert response.status_code == 403
 
-@pytest.mark.django_db
-def test_create_member_get_buttons(client):
-    user = CustomUser.objects.create_user(
-        email='user1@example.com',
-        username='user1',
-        password='pass123',
-        is_staff=True
-    )
-    permission = Permission.objects.get(codename='can_add_member')
-    user.user_permissions.add(permission)
-    client.force_login(user)
 
+@pytest.mark.django_db
+def test_create_member_get_buttons(client, staff_user_with_permission):
+    client.force_login(staff_user_with_permission)
     url = reverse('staff:creer_membre')
     response = client.get(url)
     content = response.content.decode('utf-8')
