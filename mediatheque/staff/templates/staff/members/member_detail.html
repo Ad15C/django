@@ -1,5 +1,9 @@
 {% extends 'base.html' %}
 
+{% block return_link %}
+<a href="{% url 'staff:espace_staff' %}">Retour au Dashboard</a>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
     <h2>Détails du Membre</h2>
