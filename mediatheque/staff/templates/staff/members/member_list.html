@@ -7,36 +7,48 @@
 {% block content %}
 <div class="container mt-4">
     <h2>Liste des Membres</h2>
+
     <table class="table table-bordered">
         <thead>
         <tr>
-            <th>Nom d'utilisateur :</th>
-            <th>Prénom :</th>
-            <th>Nom :</th>
-            <th>Email :</th>
-            <th>Status :</th>
-            <th>Actions :</th>
+            <th>Nom d'utilisateur</th>
+            <th>Prénom</th>
+            <th>Nom</th>
+            <th>Email</th>
+            <th>Status</th>
+            <th>Actions</th>
         </tr>
         </thead>
         <tbody>
         {% for member in page_obj %}
+        {% if member.pk and member.pk > 0 %}
         <tr>
             <td>{{ member.username }}</td>
             <td>{{ member.first_name }}</td>
             <td>{{ member.last_name }}</td>
             <td>{{ member.email }}</td>
-            <td>{% if member.is_active %} Actif {% else %} Inactif {% endif %}</td>
+            <td>{% if member.is_active %}Actif{% else %}Inactif{% endif %}</td>
             <td>
                 <a href="{% url 'staff:modifier_membre' member.pk %}" class="btn btn-warning btn-sm">Modifier</a>
-                <a href="{% url 'staff:membre_detail' member.pk %}" class="btn btn-info btn-sm">Voir</a>
+                <a href="{% url 'staff:membre_detail' pk=member.pk %}" class="btn btn-info btn-sm">Voir le détail</a>
             </td>
         </tr>
+        {% else %}
+        <tr>
+            <td colspan="6" class="text-danger text-center">Membre invalide (pk={{ member.pk }})</td>
+        </tr>
+        {% endif %}
+        {% empty %}
+        <tr>
+            <td colspan="6" class="text-center">Aucun membre trouvé.</td>
+        </tr>
         {% endfor %}
+
         </tbody>
     </table>
 
     <!-- Pagination -->
-    <div class="pagination">
+    <div class="pagination mt-4">
         <span class="step-links">
             {% if page_obj.has_previous %}
                 <a href="?page=1">&laquo; première</a>

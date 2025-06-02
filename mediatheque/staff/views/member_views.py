@@ -18,7 +18,8 @@ class MemberForm(forms.ModelForm):
 # Liste des membres avec pagination
 @permission_required('authentification.can_view_members', raise_exception=True)
 def member_list(request):
-    members = User.objects.all()
+    # Exclure pk null ou 0, puis ordonner par username (ou un autre champ pertinent)
+    members = User.objects.exclude(pk__isnull=True).exclude(pk=0).order_by('username')
     # Pagination
     page_number = request.GET.get('page', 1)
     paginator = Paginator(members, 10)  # 10 membres par page
@@ -62,5 +63,7 @@ def update_member(request, pk):
 # Voir les détails d'un membre
 @permission_required('authentification.can_view_members', raise_exception=True)
 def member_detail(request, pk):
+    if pk == 0:
+        return redirect('staff:liste_membres')
     member = get_object_or_404(User, pk=pk)
     return render(request, 'staff/members/member_detail.html', {'member': member})
