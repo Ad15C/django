@@ -4,6 +4,8 @@ from django.contrib.auth import get_user_model
 from django.contrib import messages
 from django import forms
 from django.core.paginator import Paginator
+from django.contrib.auth.decorators import login_required
+from mediatheque.staff.decorators import role_required
 
 User = get_user_model()
 
@@ -16,10 +18,12 @@ class MemberForm(forms.ModelForm):
 
 
 # Liste des membres avec pagination
+@login_required
+@role_required(User.STAFF)
 @permission_required('authentification.can_view_members', raise_exception=True)
 def member_list(request):
     # Exclure pk null ou 0, puis ordonner par username (ou un autre champ pertinent)
-    members = User.objects.exclude(pk__isnull=True).exclude(pk=0).order_by('username')
+    members = User.objects.exclude(pk__isnull=True).exclude(pk=0).exclude(pk=request.user.pk).order_by('username')
     # Pagination
     page_number = request.GET.get('page', 1)
     paginator = Paginator(members, 10)  # 10 membres par page
@@ -28,6 +32,8 @@ def member_list(request):
 
 
 # Créer un membre
+@login_required
+@role_required(User.STAFF)
 @permission_required('authentification.can_add_member', raise_exception=True)
 def create_member(request):
     if request.method == 'POST':
@@ -44,6 +50,8 @@ def create_member(request):
 
 
 # Mettre à jour un membre
+@login_required
+@role_required(User.STAFF)
 @permission_required('authentification.can_update_member', raise_exception=True)
 def update_member(request, pk):
     member = get_object_or_404(User, pk=pk)
@@ -61,6 +69,8 @@ def update_member(request, pk):
 
 
 # Voir les détails d'un membre
+@login_required
+@role_required(User.STAFF)
 @permission_required('authentification.can_view_members', raise_exception=True)
 def member_detail(request, pk):
     if pk == 0:
