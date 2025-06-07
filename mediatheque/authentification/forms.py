@@ -40,12 +40,12 @@ class EditProfileForm(forms.ModelForm):
     password = forms.CharField(
         label="Nouveau mot de passe",
         widget=forms.PasswordInput(attrs={'class': 'form-control'}),
-        required=False  # Make this optional
+        required=False
     )
 
     class Meta:
         model = User
-        fields = ['username', 'email']  # You can keep 'username' and 'email' fields
+        fields = ['username', 'email']
         widgets = {
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
             'username': forms.TextInput(attrs={'class': 'form-control'}),

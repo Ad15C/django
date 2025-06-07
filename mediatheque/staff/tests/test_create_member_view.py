@@ -93,6 +93,7 @@ def test_create_member_get_buttons(client, staff_user_with_permission):
     assert 'Créer un Membre' in content
 
     # Vérifie la présence du bouton submit
+
     assert '<button type="submit"' in content
     assert 'Créer le membre' in content
 

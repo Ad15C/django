@@ -4,6 +4,8 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from datetime import datetime, time
+from django.utils.translation import gettext_lazy as _
+
 
 User = get_user_model()
 
@@ -41,6 +43,13 @@ class BoardGameForm(forms.ModelForm):
 
 # Member form
 class MemberForm(forms.ModelForm):
+    email = forms.EmailField(
+        label="Email",
+        required=True,
+        error_messages={'invalid': _("Entrez une adresse email valide.")},
+        widget=forms.EmailInput(attrs={'type': 'text'})
+    )
+
     class Meta:
         model = User
         fields = ['username', 'first_name', 'last_name', 'email', 'is_staff', 'is_active']
