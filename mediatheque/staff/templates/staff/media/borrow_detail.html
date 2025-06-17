@@ -8,6 +8,12 @@
 <div class="container mt-4">
     <h2>Détails de l'emprunt</h2>
 
+    {% if borrow_item %}
+    <p>Borrow ID: {{ borrow_item.id }}</p>
+    {% else %}
+    <p class="text-danger">Aucun emprunt trouvé.</p>
+    {% endif %}
+
     <ul class="list-group">
         {% if media %}
         <li class="list-group-item"><strong>Média :</strong> {{ media.name }}</li>
@@ -28,13 +34,22 @@
         {% endif %}
     </ul>
 
-    <h3>Médias empruntables :</h3>
+    <h3>Médias empruntés :</h3>
+    <ul>
+        {% for media_item in borrowed_media %}
+        <li>{{ media_item.name }} ({{ media_item.media_type }})</li>
+        {% empty %}
+        <li>Aucun média emprunté actuellement.</li>
+        {% endfor %}
+    </ul>
+
+    <h3>Médias à retourner :</h3>
 
     {% if borrowable_media %}
     <form action="{% url 'staff:retourner_media' pk=borrow_item.pk %}" method="POST">
         {% csrf_token %}
         <div class="form-group">
-            <label for="media">Sélectionner un ou plusieurs médias à retourner :</label>
+            <label for="media">Sélectionnez un ou plusieurs médias empruntés à retourner :</label>
             <select name="media" id="media" class="form-control" multiple>
                 {% for media_item in borrowable_media %}
                 <option value="{{ media_item.pk }}">{{ media_item.name }} - {{ media_item.media_type }}</option>
@@ -44,7 +59,7 @@
         <button type="submit" class="btn btn-danger mt-3">Retourner le(s) média(s) sélectionné(s)</button>
     </form>
     {% else %}
-    <p class="text-muted">Aucun média empruntable disponible.</p>
+    <p class="text-muted">Aucun média emprunté à retourner.</p>
     {% endif %}
 
 
