@@ -74,13 +74,19 @@
             </td>
             <td>
                 <a href="{% url 'staff:media_detail' item.pk %}" class="btn btn-sm btn-outline-primary">Détails</a>
+
                 {% if item.media_type == "board_game" %}
                 <p><strong>Note : Ce jeu de société ne peut pas être emprunté.</strong></p>
                 {% else %}
                 {% if item.is_available and item.can_be_borrowed_by_user %}
-                <form method="post" action="{% url 'staff:emprunter' item.pk %}" style="display:inline;">
+                <a href="{% url 'staff:emprunter' item.pk %}" class="btn btn-sm btn-success">Emprunter</a>
+
+                {% elif item.borrower and item.borrow_record %}
+                <form method="post" action="{% url 'staff:retourner_media' item.borrow_record.pk %}"
+                      style="display:inline;">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-sm btn-success">Emprunter</button>
+                    <input type="hidden" name="media" value="{{ item.pk }}">
+                    <button type="submit" class="btn btn-sm btn-warning">Retourner</button>
                 </form>
                 {% else %}
                 <p>Ce média ne peut pas être emprunté en ce moment.</p>

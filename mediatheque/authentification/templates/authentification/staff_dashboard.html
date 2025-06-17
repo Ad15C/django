@@ -11,20 +11,6 @@
             <!-- Partie Médias -->
             <li class="list-group-item"><a href="{% url 'staff:media_liste' %}">Liste des Médias</a></li>
             <li class="list-group-item"><a href="{% url 'staff:ajouter_media' %}">Ajouter un Média</a></li>
-            <li class="list-group-item">
-                {% if borrow.pk %}
-                <a href="{% url 'staff:detail_emprunt' pk=borrow.pk %}">Détails d'Emprunt</a>
-                {% else %}
-                Aucune donnée d'emprunt disponible
-                {% endif %}
-            </li>
-            <li class="list-group-item">{% if media.pk %}
-                <a href="{% url 'staff:retourner_media' pk=media.pk %}">Retourner un Média</a>
-                {% else %}
-                Pas de média disponible pour retourner
-                {% endif %}
-            </li>
-
             <br>
             <!-- Partie Membres -->
             <li class="list-group-item"><a href="{% url 'staff:liste_membres' %}">Liste des Membres</a></li>

@@ -7,11 +7,9 @@ from mediatheque.staff.models import MediaStaff, StaffBorrowItem, BoardGameStaff
 from mediatheque.staff.forms import BorrowMediaForm, BookForm, DVDForm, CDForm, BoardGameForm
 from django.core.paginator import Paginator
 from django.http import HttpResponseForbidden
-from django.contrib.auth.decorators import login_required
 from mediatheque.staff.decorators import role_required
 from django.contrib.auth import get_user_model
 from django.core.exceptions import PermissionDenied
-from django.contrib import messages
 
 User = get_user_model()
 
@@ -144,9 +142,24 @@ def media_list(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    # Ajout de la propriété personnalisée
-    for item in page_obj:
-        item.can_be_borrowed_by_user = item.is_borrowable_by(request.user)
+    # Récupérer les IDs médias affichés dans la page
+    media_ids = [media.pk for media in page_obj]
+
+    # Récupérer emprunts actifs pour ces médias
+    active_borrows = StaffBorrowItem.objects.filter(media_id__in=media_ids, is_returned=False)
+
+    # Dictionnaire media_id -> emprunt actif
+    borrow_dict = {borrow.media_id: borrow for borrow in active_borrows}
+
+    # Ajouter l'attribut borrow_record et can_be_borrowed_by_user
+    for media in page_obj:
+        media.borrow_record = borrow_dict.get(media.pk)
+        media.can_be_borrowed_by_user = media.is_borrowable_by(request.user)
+
+        if media.borrow_record:
+            media.borrower = media.borrow_record.user
+        else:
+            media.borrower = None
 
     context = {
         'media_type_filter': media_type_filter,
@@ -280,7 +293,7 @@ def confirm_borrow(request, pk):
             media.save()
 
             # Redirection après confirmation pour éviter le repost du formulaire
-            return redirect('staff:espace_staff')
+            return redirect('staff:succes_emprunt', pk=media.id)
     else:
         # GET : initialisation du formulaire avec les champs cachés media et due_date
         form = BorrowMediaForm(initial={
@@ -301,13 +314,28 @@ def confirm_borrow(request, pk):
 @role_required(User.STAFF)
 @permission_required('authentification.can_borrow_media', raise_exception=True)
 def borrow_success(request, pk):
-    # Récupére l'objet d'emprunt avec le pk
     borrow_item = get_object_or_404(StaffBorrowItem, pk=pk)
-    media = borrow_item.media  # Récupére le média associé à l'emprunt
+    media = borrow_item.media
+
+    is_late = borrow_item.due_date and borrow_item.due_date < timezone.now()
+
+    # Médias empruntés par le même user (non retournés)
+    borrowed_media = MediaStaff.objects.filter(
+        staff_borrows_media__user=borrow_item.user,
+        staff_borrows_media__is_returned=False,
+        is_available=False
+    ).distinct()
+
+    # Médias empruntables pour l'utilisateur (disponibles et pouvant être empruntés)
+    borrowable_media = MediaStaff.get_borrowable_by(borrow_item.user)
 
     return render(request, 'staff/media/borrow_success.html', {
         'borrow_item': borrow_item,
         'media': media,
+        'is_late': is_late,
+        'borrowed_media': borrowed_media,
+        'borrowable_media': borrowable_media,
+        'user': request.user,
     })
 
 

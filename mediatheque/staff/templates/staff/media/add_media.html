@@ -19,20 +19,47 @@
 
     <form method="post">
         {% csrf_token %}
-        <label for="media_type">Choisissez un type de média :</label>
-        <select name="media_type" id="media_type">
+        <select name="media_type" id="media_type" onchange="showFormFields()">
             <option value="book">Livre</option>
             <option value="dvd">DVD</option>
             <option value="cd">CD</option>
             <option value="board_game">Jeu de société</option>
         </select>
 
-        <!-- Affiche le formulaire approprié en fonction du type de média choisi -->
-        {% if form %}
-        {{ form.as_p }}
-        {% endif %}
+        <div id="common-fields">
+            <!-- Champs communs -->
+            <input type="text" name="name" placeholder="Nom" required>
+            <input type="checkbox" name="is_available"> Disponible
+            <input type="checkbox" name="can_borrow"> Empruntable
+        </div>
 
-        <button type="submit">Ajouter le média</button>
+        <div id="book-fields" style="display:none;">
+            <input type="text" name="author" placeholder="Auteur">
+        </div>
+        <div id="dvd-fields" style="display:none;">
+            <input type="text" name="producer" placeholder="Producteur">
+        </div>
+        <div id="cd-fields" style="display:none;">
+            <input type="text" name="artist" placeholder="Artiste">
+        </div>
+        <div id="boardgame-fields" style="display:none;">
+            <input type="text" name="creators" placeholder="Créateurs">
+            <input type="text" name="game_type" placeholder="Type de jeu">
+        </div>
+
+        <button type="submit">Ajouter</button>
     </form>
+
+    <script>
+        function showFormFields() {
+          var mediaType = document.getElementById('media_type').value;
+          ['book', 'dvd', 'cd', 'boardgame'].forEach(function(type) {
+            var el = document.getElementById(type + '-fields');
+            if (el) el.style.display = (type === mediaType) ? 'block' : 'none';
+          });
+        }
+        document.addEventListener('DOMContentLoaded', showFormFields);
+    </script>
+
 </div>
 {% endblock %}
