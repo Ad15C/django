@@ -31,8 +31,16 @@
             <td>
                 <a href="{% url 'staff:modifier_membre' member.pk %}" class="btn btn-warning btn-sm">Modifier</a>
                 <a href="{% url 'staff:membre_detail' pk=member.pk %}" class="btn btn-info btn-sm">Voir le détail</a>
+
+                <form action="{% url 'staff:supprimer_membre' member.pk %}" method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-sm"
+                            onclick="return confirm('Voulez-vous vraiment supprimer ce membre ?')">Supprimer
+                    </button>
+                </form>
             </td>
         </tr>
+
         {% else %}
         <tr>
             <td colspan="6" class="text-danger text-center">Membre invalide (pk={{ member.pk }})</td>

@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block return_link %}
+<a href="{% url 'staff:liste_membres' %}">Retour à la liste des membres</a>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Confirmer la suppression</h2>
+    <p>Êtes-vous sûr de vouloir supprimer le membre <strong>{{ member.username }}</strong> ?</p>
+
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Confirmer la suppression</button>
+        <a href="{% url 'staff:liste_membres' %}" class="btn btn-secondary">Annuler</a>
+    </form>
+</div>
+{% endblock %}

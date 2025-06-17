@@ -33,6 +33,18 @@
             <th>Staff</th>
             <td>{% if member.is_staff %} Oui {% else %} Non {% endif %}</td>
         </tr>
+        <tr>
+            <th>Actions</th>
+            <td>
+                <form action="{% url 'staff:supprimer_membre' member.pk %}" method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-sm"
+                            onclick="return confirm('Voulez-vous vraiment supprimer ce membre ?')">
+                        Supprimer
+                    </button>
+                </form>
+            </td>
+        </tr>
     </table>
     <a href="{% url 'staff:liste_membres' %}" class="btn btn-secondary mt-2">Retour à la liste</a>
 </div>
