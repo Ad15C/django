@@ -3,6 +3,7 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth import get_user_model
 from django.contrib import messages
 from django import forms
+from django.http import HttpResponseForbidden
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
 from mediatheque.staff.decorators import role_required
@@ -70,10 +71,15 @@ def update_member(request, pk):
 
 # Voir les détails d'un membre
 @login_required
-@role_required(User.STAFF)
-@permission_required('authentification.can_view_members', raise_exception=True)
 def member_detail(request, pk):
+    if not request.user.is_staff:
+        return HttpResponseForbidden()
+
     if pk == 0:
         return redirect('staff:liste_membres')
+
+    if not request.user.has_perm('authentification.can_view_members'):
+        return HttpResponseForbidden()
+
     member = get_object_or_404(User, pk=pk)
     return render(request, 'staff/members/member_detail.html', {'member': member})
