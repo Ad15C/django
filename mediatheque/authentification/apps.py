@@ -20,6 +20,7 @@ class AuthentificationConfig(AppConfig):
 
             permissions_staff = [
                 ('can_add_member', 'Can add members'),
+                ('can_delete_member', 'Can delete member'),
                 ('can_update_member', 'Can update members'),
                 ('can_view_members', 'Can view members'),
                 ('can_add_media', 'Can add media'),

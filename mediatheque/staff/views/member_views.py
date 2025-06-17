@@ -83,3 +83,15 @@ def member_detail(request, pk):
 
     member = get_object_or_404(User, pk=pk)
     return render(request, 'staff/members/member_detail.html', {'member': member})
+
+
+@login_required
+@role_required(User.STAFF)
+@permission_required('authentification.can_delete_member', raise_exception=True)
+def delete_member(request, pk):
+    member = get_object_or_404(User, id=pk)
+    if request.method == 'POST':
+        member.delete()
+        messages.success(request, "Membre supprimé avec succès !")
+        return redirect('staff:liste_membres')
+    return render(request, 'staff/members/confirm_delete.html', {'member': member})

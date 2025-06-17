@@ -101,3 +101,38 @@ def test_no_members_found(client, staff_user):
     response = client.get(url)
     assert response.status_code == 200
     assert "Aucun membre trouvé" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_delete_member_view(client):
+    member = User.objects.create_user(username='testuser', email='testuser@example.com', password='pass123')
+
+    staff_user = User.objects.create_user(
+        username='staffuser',
+        email='staffuser@example.com',
+        password='staffpass',
+        is_staff=True,
+        role=User.STAFF,
+    )
+
+    content_type = ContentType.objects.get_for_model(User)
+    perm_delete = Permission.objects.get(codename='can_delete_member', content_type=content_type)
+    perm_view = Permission.objects.get(codename='can_view_members', content_type=content_type)
+    staff_user.user_permissions.add(perm_delete, perm_view)
+    staff_user.save()
+
+    staff_user = User.objects.get(pk=staff_user.pk)
+    client.force_login(staff_user)
+
+    url = reverse('staff:supprimer_membre', args=[member.pk])
+
+    response = client.get(url)
+    assert response.status_code == 200
+    assert "Confirmer la suppression" in response.content.decode('utf-8')
+
+    response = client.post(url, follow=True)
+    assert response.status_code == 200
+
+    assert not User.objects.filter(pk=member.pk).exists()
+    assert response.redirect_chain[-1][0] == reverse('staff:liste_membres')
+    assert "Membre supprimé avec succès" in response.content.decode('utf-8')

@@ -25,4 +25,5 @@ urlpatterns = [
     path('membres/creer/', member_views.create_member, name='creer_membre'),
     path('membres/<int:pk>/modifier/', member_views.update_member, name='modifier_membre'),
     path('membres/<int:pk>/detail/', member_views.member_detail, name='membre_detail'),
+    path('membres/<int:pk>/supprimer', member_views.delete_member, name='supprimer_membre')
 ]
