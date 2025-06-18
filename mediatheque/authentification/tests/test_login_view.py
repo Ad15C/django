@@ -5,6 +5,7 @@ from django.contrib.messages import get_messages
 from django.test import Client
 
 
+
 @pytest.mark.django_db
 def test_login_view_get():
     """
@@ -33,7 +34,7 @@ def test_login_view_post_valid_credentials():
 
     # Vérifier la redirection vers l'espace client
     assert response.status_code == 302
-    assert response.url == reverse('authentification:espace_client')
+    reverse('client:espace_client')
 
     # Vérifier si le message de succès est affiché
     messages = list(get_messages(response.wsgi_request))

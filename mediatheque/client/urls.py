@@ -1,9 +1,9 @@
-from django.urls import path, include
-from mediatheque.authentification.views import client_dashboard
+from django.urls import path
 from . import views
 
-app_name = 'mediatheque.client'
+
+app_name = 'client'
 
 urlpatterns = [
-    path('espace_client', views.client_dashboard, name='espace_client'),
+    path('espace_client/', views.client_dashboard, name='espace_client'),
 ]
