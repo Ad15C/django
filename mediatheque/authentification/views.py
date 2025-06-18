@@ -18,7 +18,7 @@ User = get_user_model()
 
 @login_required
 def home_view(request):
-    return render(request, 'authentification/client_dashboard.html')
+    return render(request, 'client/client_dashboard.html')
 
 
 def signup_view(request):

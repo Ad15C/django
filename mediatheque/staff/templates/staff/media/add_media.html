@@ -52,12 +52,18 @@
 
     <script>
         function showFormFields() {
-          var mediaType = document.getElementById('media_type').value;
-          ['book', 'dvd', 'cd', 'boardgame'].forEach(function(type) {
-            var el = document.getElementById(type + '-fields');
-            if (el) el.style.display = (type === mediaType) ? 'block' : 'none';
-          });
-        }
+    var mediaType = document.getElementById('media_type').value;
+    var typeMap = {
+        'book': 'book',
+        'dvd': 'dvd',
+        'cd': 'cd',
+        'board_game': 'boardgame'  // correction ici
+    };
+    ['book', 'dvd', 'cd', 'boardgame'].forEach(function(type) {
+        var el = document.getElementById(type + '-fields');
+        if (el) el.style.display = (typeMap[mediaType] === type) ? 'block' : 'none';
+    });
+}
         document.addEventListener('DOMContentLoaded', showFormFields);
     </script>
 
