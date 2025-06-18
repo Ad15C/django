@@ -17,7 +17,7 @@ def client_dashboard(request):
     borrows = ClientBorrow.objects.filter(user=user, returned=False)
     borrowed_media_ids = borrows.values_list('media_id', flat=True)
 
-    available_media = MediaClient.objects.all()
+    available_media = MediaClient.objects.filter(is_available=True).exclude(media_type='board_game')
 
     # Ajouter détails et statut emprunté
     for media in available_media:
