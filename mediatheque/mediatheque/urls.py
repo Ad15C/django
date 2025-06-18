@@ -22,6 +22,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('auth/', include(('mediatheque.authentification.urls', 'authentification'), namespace='mediatheque.authentification')),
     path('', home_view, name='home'),
-    path('client/', include('mediatheque.client.urls')),
+    path("client/", include(("mediatheque.client.urls", "client"), namespace="client")),
     path('staff/', include('mediatheque.staff.urls')),
 ]

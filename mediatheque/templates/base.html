@@ -15,7 +15,7 @@
             {% if user.role == 'staff' %}
             <li><a href="{% url 'authentification:espace_staff' %}">Espace des Membres</a></li>
             {% elif user.role == 'client' %}
-            <li><a href="{% url 'authentification:espace_client' %}">Espace du Personnel</a></li>
+            <li><a href="{% url 'client:espace_client' %}">Espace du Personnel</a></li>
             {% endif %}
             <li><a href="{% url 'authentification:deconnexion' %}">Déconnexion</a></li>
             {% else %}

@@ -18,7 +18,7 @@ User = get_user_model()
 
 @login_required
 def home_view(request):
-    return render(request, 'authentification/home.html')
+    return render(request, 'authentification/client_dashboard.html')
 
 
 def signup_view(request):
@@ -51,7 +51,7 @@ def login_view(request):
 
                 # Redirection vers la page appropriée en fonction du rôle de l'utilisateur
                 if user.role == User.CLIENT:
-                    return redirect('authentification:espace_client')
+                    return redirect('client:espace_client')
                 elif user.role == User.STAFF:
                     return redirect('authentification:espace_staff')
                 elif user.role == User.ADMIN:
@@ -97,29 +97,10 @@ def edit_profile(request, user_id):
 
 
 @login_required
-@role_required(User.CLIENT)
-def client_dashboard(request):
-    # Emprunts en cours pour cet utilisateur
-    borrows = StaffBorrowItem.objects.filter(user=request.user, is_returned=False).select_related('media')
-
-    # Message si aucun emprunt
-    message = None if borrows.exists() else 'Aucune réservation en cours.'
-
-    # Médias disponibles à l'emprunt
-    available_media = MediaStaff.get_borrowable_by(request.user).filter(is_available=True, can_borrow=True)
-
-    return render(request, "authentification/client_dashboard.html", {
-        'borrows': borrows,
-        'available_media': available_media,
-        'message': message
-    })
-
-
-@login_required
 @role_required(User.STAFF)
 def staff_dashboard(request):
-    if not request.user.is_staff_user:  # Vérification si l'utilisateur est un membre du personnel
-        return HttpResponseForbidden("Vous n'êtes pas autorisé à voir cette page.")
+    if request.user.role != User.STAFF:
+        return HttpResponseForbidden("Accès interdit")
 
     user = request.user
     current_borrows = StaffBorrowItem.objects.filter(
@@ -128,33 +109,26 @@ def staff_dashboard(request):
         due_date__gte=timezone.now()
     ).exclude(media__can_borrow=False)
 
-    for borrow in current_borrows:
-        if borrow.pk is None:
-            logger.error(f"Error: Missing pk for borrow {borrow}")
-        else:
-            logger.info(f"Current borrow pk: {borrow.pk}")
-
     overdue_borrows = StaffBorrowItem.objects.filter(
         user=user,
         is_returned=False,
         due_date__lt=timezone.now()
     ).exclude(media__can_borrow=False)
 
-    # Récupérer tous les objets des modèles concrets
     all_books = BookStaff.objects.all().order_by('name')
     all_cds = CDStaff.objects.all().order_by('name')
     all_dvds = DVDStaff.objects.all().order_by('name')
     all_boardgames = BoardGameStaff.objects.all().order_by('name')
 
-    # Combiner tous les résultats dans une seule liste
     all_media = list(all_books) + list(all_cds) + list(all_dvds) + list(all_boardgames)
-    paginator = Paginator(all_media, 10)  # Pagination: 10 médias par page
+
+    paginator = Paginator(all_media, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
     for media in page_obj:
         if not media.pk:
-            logger.error(f"Erreur : Le média {media.name} n'a pas de pk valide.")
+            logger.error(f"Erreur : Le média {media.name} n\'a pas de pk valide.")
 
     return render(request, 'authentification/staff_dashboard.html', {
         'current_borrows': current_borrows,
@@ -170,5 +144,5 @@ def login_redirect_view(request):
     elif request.user.role == User.STAFF:
         return redirect('authentification:espace_staff')
     elif request.user.role == User.CLIENT:
-        return redirect('authentification:espace_client')
+        return redirect('client:espace_client')
     return redirect('authentification:home')

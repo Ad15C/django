@@ -11,14 +11,19 @@ User = get_user_model()
 
 @pytest.mark.django_db
 def test_staff_dashboard(client):
-    # Création d'un utilisateur staff et connexion
     staff_user = User.objects.create_user(
         username="staffuser",
         email="staffuser@example.com",
         password="testpass",
-        role=User.STAFF
+        role=User.STAFF,
+        is_staff=True
     )
-    client.login(username="staffuser", password="testpass")
+
+    assert client.login(username="staffuser", password="testpass")
+
+    response = client.get(reverse('authentification:espace_staff'))
+    assert response.status_code == 200
+    assert "Bienvenue" in response.content.decode()
 
     # Création de plusieurs médias de chaque type : Livre, CD, DVD, et Board Game
     book1 = BookStaff.objects.create(name="Book 1", author="Author 1", is_available=True, can_borrow=True)
