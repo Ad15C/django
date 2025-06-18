@@ -25,14 +25,21 @@
 {% endif %}
 
 <h3>Médias disponibles :</h3>
-{% if available_media %}
+<p>Nombre de médias disponibles : {{ available_media|length }}</p>
 <ul>
     {% for media in available_media %}
-    <li>{{ media.name }}</li>
+    <li>
+        {{ media.name }} — {{ media.details }} —
+        {% if media.is_borrowed %}
+        <strong>Emprunté</strong>
+        {% else %}
+        <strong>Disponible</strong>
+        {% endif %}
+    </li>
+    {% empty %}
+    <li>Aucun média disponible actuellement.</li>
     {% endfor %}
 </ul>
-{% else %}
-<p>Aucun média disponible actuellement.</p>
-{% endif %}
+
 
 {% endblock %}

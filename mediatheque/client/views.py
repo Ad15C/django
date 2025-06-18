@@ -14,15 +14,33 @@ def is_client(user):
 def client_dashboard(request):
     user = request.user
 
-    borrows = ClientBorrow.objects.filter(user=user)
-    available_media = MediaClient.objects.filter(is_available=True, can_borrow=True)
+    borrows = ClientBorrow.objects.filter(user=user, returned=False)
+    borrowed_media_ids = borrows.values_list('media_id', flat=True)
+
+    available_media = MediaClient.objects.all()
+
+    # Ajouter détails et statut emprunté
+    for media in available_media:
+        # Détail auteur/producteur/...
+        if media.media_type == 'book' and hasattr(media, 'bookclient'):
+            media.details = f"Auteur : {media.bookclient.author}"
+        elif media.media_type == 'dvd' and hasattr(media, 'dvdclient'):
+            media.details = f"Producteur : {media.dvdclient.producer}"
+        elif media.media_type == 'cd' and hasattr(media, 'cdclient'):
+            media.details = f"Artiste : {media.cdclient.artist}"
+        elif media.media_type == 'board_game' and hasattr(media, 'boardgameclient'):
+            media.details = f"Créateur(s) : {media.boardgameclient.creators}"
+        else:
+            media.details = ""
+
+        # Est-ce emprunté ?
+        media.is_borrowed = media.id in borrowed_media_ids
 
     context = {
         "user": user,
         "borrows": borrows,
         "available_media": available_media,
-        "message": "Vous n'avez aucun emprunt en cours." if not borrows.exists() else None,
+        "message": "Vous n\'avez aucun emprunt en cours." if not borrows.exists() else None,
     }
 
     return render(request, "client/client_dashboard.html", context)
-    pass
