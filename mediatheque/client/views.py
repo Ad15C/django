@@ -1,7 +1,6 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from mediatheque.client.models import ClientBorrow, MediaClient
-from django.http import HttpResponseForbidden
 from mediatheque.authentification.decorators import role_required
 
 

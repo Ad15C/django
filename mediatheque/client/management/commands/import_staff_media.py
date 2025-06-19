@@ -1,6 +1,5 @@
 from django.core.management.base import BaseCommand
 from django.contrib.contenttypes.models import ContentType
-
 from mediatheque.staff.models import BookStaff, CDStaff, DVDStaff, BoardGameStaff
 from mediatheque.client.models import MediaClient, BookClient, CDClient, DVDClient, BoardGameClient
 
