@@ -228,7 +228,6 @@ def borrow_media(request, pk):
                 return redirect('staff:succes_emprunt', pk=borrow_item.pk)
 
 
-
         else:
             # Formulaire pré-rempli avec les informations du média
             form = BorrowMediaForm(initial={'media': media, 'due_date': due_date})
