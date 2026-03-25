@@ -48,17 +48,13 @@ def test_add_media_post_valid(client, staff_user, media_type, model, form_data):
     data = {'media_type': media_type}
     data.update(form_data)
 
-    response = client.post(url, data, follow=True)
+    response = client.post(url, data)
 
-    # Vérifie la redirection après la soumission du formulaire
-    if response.status_code == 200:
-        # Si le code de status est 200, cela signifie que la page a été rendue sans redirection
-        assert response.context['form'].errors  # Vérifie si le formulaire a des erreurs
-    else:
-        # Si la redirection a eu lieu, vérifier la redirection vers la bonne URL
-        assert response.redirect_chain[0][0].endswith(reverse('staff:media_liste'))
+    # redirection attendue si formulaire valide
+    assert response.status_code == 302
+    assert response.url == reverse('staff:media_liste')
 
-    # Vérifie la création de l'objet dans la base de données
+    # objet bien créé
     assert model.objects.filter(name=form_data['name']).exists()
 
 

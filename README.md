@@ -93,8 +93,30 @@ Chaque fonctionnalité principale possède au moins un test :
 - vérification du type de média
 
 ## Exécution des tests :
+* installation de pytest-django : 
+```pip install pytest pytest-django```
 
-pytest
+* installation BeautifulSoup
+```pip install beautifulsoup4```
+
+* lancement des tests
+```pytest```
+
+## Informations des rôles test
+*Admin* 
+- email: admin@exemple.com
+- id: admin
+- mot de passe: Azerty.123
+
+*staff*
+- email: staff@email.com
+- id: staff
+- mot de passe: Azerty.123!
+
+*client*
+- email: client@exemple.com
+- id: client
+- mot de passe: Azerty!123
 
 # Technologies utilisées
 

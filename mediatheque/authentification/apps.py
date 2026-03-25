@@ -8,6 +8,8 @@ class AuthentificationConfig(AppConfig):
     name = 'mediatheque.authentification'
 
     def ready(self):
+        import mediatheque.authentification.signals
+
         from django.contrib.auth.models import Group, Permission
         from django.contrib.contenttypes.models import ContentType
         from .models import CustomUser
@@ -30,9 +32,7 @@ class AuthentificationConfig(AppConfig):
                 ('can_view_media', 'Can view media'),
             ]
 
-            permissions_client = [
-                ('can_view_media', 'Can view media'),
-            ]
+            permissions_client = []
 
             # Créer et assigner les permissions pour le staff
             for codename, name in permissions_staff:
@@ -55,4 +55,7 @@ class AuthentificationConfig(AppConfig):
                 except Permission.DoesNotExist:
                     pass  # ou logguer une erreur si besoin
 
-        post_migrate.connect(create_groups_and_permissions, sender=apps.get_app_config('authentification'))
+        post_migrate.connect(
+            create_groups_and_permissions,
+            sender=apps.get_app_config('authentification')
+        )

@@ -6,23 +6,15 @@ from django.utils import timezone
 from mediatheque.staff.models import MediaStaff, StaffBorrowItem, BoardGameStaff, BookStaff, DVDStaff, CDStaff
 from mediatheque.staff.forms import BorrowMediaForm, BookForm, DVDForm, CDForm, BoardGameForm
 from django.core.paginator import Paginator
-from django.http import HttpResponseForbidden
-from mediatheque.staff.decorators import role_required
-from django.contrib.auth import get_user_model
 from django.core.exceptions import PermissionDenied
 
-User = get_user_model()
 
 MAX_BORROW_DURATION_DAYS = 7
 
 
 @login_required
-@role_required(User.STAFF)
+@permission_required('authentification.can_view_media', raise_exception=True)
 def staff_dashboard(request):
-    # Vérifie si l'utilisateur est un membre du personnel (staff)
-    if not request.user.is_staff_user:
-        return HttpResponseForbidden("Accès interdit")
-
     user = request.user
 
     # Filtrer les emprunts en cours pour cet utilisateur
@@ -62,7 +54,6 @@ def staff_dashboard(request):
 
 
 @login_required
-@role_required(User.STAFF)
 @permission_required('authentification.can_add_media', raise_exception=True)
 def add_media(request):
     form_classes = {
@@ -96,8 +87,7 @@ def add_media(request):
 
 
 @login_required
-@role_required(User.STAFF)
-@permission_required('staff.can_view_media', raise_exception=True)
+@permission_required('authentification.can_view_media', raise_exception=True)
 def media_list(request):
     available_filter = request.GET.get('available', None)
     only_borrowable = request.GET.get('only_borrowable', '')
@@ -175,15 +165,13 @@ def media_list(request):
 
 
 @login_required
-@role_required(User.STAFF)
-@permission_required('staff.can_view_media', raise_exception=True)
+@permission_required('authentification.can_view_media', raise_exception=True)
 def media_detail(request, pk):
     media = get_object_or_404(MediaStaff, pk=pk)
     return render(request, 'staff/media/media_detail.html', {'media': media})
 
 
 @login_required
-@role_required(User.STAFF)
 @permission_required('authentification.can_borrow_media', raise_exception=True)
 def borrow_media(request, pk):
     try:
@@ -270,7 +258,6 @@ def check_borrowing_conditions(request, user, media):
 
 # Confirmation de l'emprunt
 @login_required
-@role_required(User.STAFF)
 @permission_required('authentification.can_borrow_media', raise_exception=True)
 def confirm_borrow(request, pk):
     media = get_object_or_404(MediaStaff, id=pk)
@@ -310,7 +297,6 @@ def confirm_borrow(request, pk):
 
 # Succès de l'emprunt
 @login_required
-@role_required(User.STAFF)
 @permission_required('authentification.can_borrow_media', raise_exception=True)
 def borrow_success(request, pk):
     borrow_item = get_object_or_404(StaffBorrowItem, pk=pk)
@@ -340,7 +326,6 @@ def borrow_success(request, pk):
 
 # Détail d'un emprunt
 @login_required
-@role_required(User.STAFF)
 @permission_required('authentification.can_view_borrow', raise_exception=True)
 def borrow_detail(request, pk):
     try:
@@ -375,7 +360,6 @@ def borrow_detail(request, pk):
 
 
 @login_required
-@role_required(User.STAFF)
 @permission_required('authentification.can_return_media', raise_exception=True)
 def return_media(request, pk):
     # Récupére l'élément d'emprunt
