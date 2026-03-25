@@ -81,10 +81,24 @@ def test_delete_member_post(client_logged_with_delete, member_to_delete):
 
 
 @pytest.mark.django_db
-def test_delete_member_forbidden_without_permission(client, staff_user, member_to_delete):
-    client.force_login(staff_user)
+def test_delete_member_forbidden_without_permission(client, member_to_delete):
+    user = User.objects.create_user(
+        username='no_perm_user',
+        email='no_perm@example.com',
+        password='pass123',
+    )
+
+    # sécurité totale
+    user.groups.clear()
+    user.user_permissions.clear()
+
+    assert not user.has_perm('authentification.can_delete_member')
+
+    client.force_login(user)
+
     url = reverse('staff:supprimer_membre', args=[member_to_delete.id])
     response = client.get(url)
+
     assert response.status_code == 403
 
 

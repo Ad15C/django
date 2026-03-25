@@ -69,11 +69,17 @@ def test_create_member_permission_denied(client):
         email='user4@example.com',
         username='user4',
         password='pass123',
-        is_staff=True
+        is_staff=False,   # important
     )
-    user.role = 'staff'
-    user.save()
-    # Pas de permission ajoutée volontairement
+
+    # on enlève explicitement tout
+    user.groups.clear()
+    user.user_permissions.clear()
+    user.refresh_from_db()
+
+    assert list(user.groups.values_list("name", flat=True)) == []
+    assert not user.has_perm('authentification.can_add_member')
+
     client.force_login(user)
 
     url = reverse('staff:creer_membre')

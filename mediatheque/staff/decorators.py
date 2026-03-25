@@ -1,12 +1,14 @@
 from django.http import HttpResponseForbidden
 from functools import wraps
 
-def role_required(role):
+def role_required(*roles):
     def decorator(view_func):
         @wraps(view_func)
         def _wrapped_view(request, *args, **kwargs):
-            if not request.user.role == role:
-                return HttpResponseForbidden("Accès interdit, rôle insuffisant")
+            if not request.user.is_authenticated:
+                return HttpResponseForbidden("Utilisateur non authentifié.")
+            if not request.user.groups.filter(name__in=roles).exists():
+                return HttpResponseForbidden("Accès limité aux utilisateurs autorisés.")
             return view_func(request, *args, **kwargs)
         return _wrapped_view
     return decorator

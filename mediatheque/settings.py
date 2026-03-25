@@ -35,9 +35,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'mediatheque.authentification',
-    'mediatheque.staff',
-    'mediatheque.client'
+    'mediatheque.authentification.apps.AuthentificationConfig',
+    'mediatheque.staff.apps.StaffConfig',
+    'mediatheque.client.apps.ClientConfig',
 ]
 
 MIDDLEWARE = [

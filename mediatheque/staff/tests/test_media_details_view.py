@@ -108,14 +108,17 @@ def test_media_detail_view_success(client, staff_user_with_permission, book):
 
 @pytest.mark.django_db
 def test_media_detail_no_permission(client, media_with_description):
-    # Utilisateur sans permission
     user = User.objects.create_user(
         username="staff2",
         email="staff2@example.com",
         password="password123",
-        role=User.STAFF,
-        is_staff=True
+        is_staff=False,
     )
+
+    user.groups.clear()
+    user.user_permissions.clear()
+
+    assert not user.has_perm('authentification.can_view_media')
 
     client.login(username='staff2', password='password123')
 

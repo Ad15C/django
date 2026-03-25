@@ -90,10 +90,19 @@ def test_return_media_get_request(client, staff_user, borrow_item):
 
 
 @pytest.mark.django_db
-def test_return_media_without_permission(client, borrow_item, staff_user):
-    staff_user.user_permissions.clear()
-    staff_user.save()
-    client.login(username='staff', password='password123')
+def test_return_media_without_permission(client, borrow_item):
+    user = User.objects.create_user(
+        username='no_return_perm',
+        email='no_return_perm@example.com',
+        password='password123',
+    )
+
+    user.groups.clear()
+    user.user_permissions.clear()
+
+    assert not user.has_perm('authentification.can_return_media')
+
+    client.force_login(user)
 
     url = reverse('staff:retourner_media', kwargs={'pk': borrow_item.pk})
     response = client.post(url, data={'media': borrow_item.media.pk})

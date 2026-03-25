@@ -86,14 +86,20 @@ def test_media_list_permission_denied():
         username='no_perm',
         email='no_perm@example.com',
         password='pass',
-        role=User.STAFF
     )
+
+    user.groups.clear()
+    user.user_permissions.clear()
+
+    assert not user.has_perm('authentification.can_view_media')
+
     client = Client()
     logged_in = client.login(username='no_perm', password='pass')
-    assert logged_in, "La connexion a échoué dans le test"
+    assert logged_in
 
     url = reverse('staff:media_liste')
     response = client.get(url)
+
     assert response.status_code == 403
 
 

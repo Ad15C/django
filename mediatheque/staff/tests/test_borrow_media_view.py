@@ -163,15 +163,26 @@ def test_successful_borrow_media(staff_user, media_item, client):
 
 
 @pytest.mark.django_db
-def test_user_without_permission_cannot_borrow_media(staff_user, media_item, client):
-    perm = Permission.objects.get(codename='can_borrow_media')
-    staff_user.user_permissions.remove(perm)
-    staff_user.save()
+def test_user_without_permission_cannot_borrow_media(media_item, client):
+    user = User.objects.create_user(
+        username='no_perm_user',
+        email='no_perm_user@example.com',
+        password='password123'
+    )
+
+    # sécurité : aucun groupe, aucune permission
+    user.groups.clear()
+    user.user_permissions.clear()
+
+    assert not user.has_perm('authentification.can_borrow_media')
+
+    client.force_login(user)
+
     url = reverse('staff:emprunter', kwargs={'pk': media_item.pk})
-    client.login(username='staff', password='password123')
     due_date_str = make_due_date(7)
     response = client.post(url, data={'due_date': due_date_str})
-    assert response.status_code == 403  # On attend un Forbidden
+
+    assert response.status_code == 403 # On attend un Forbidden
 
 
 
