@@ -33,6 +33,18 @@ Grâce à ce projet, les compétences suivantes sont mises en œuvre :
 
 - Structurer un projet avec Git et GitHub
 
+# Compétences développées
+
+- Développement backend avec Django
+- Gestion des rôles utilisateurs
+- Architecture MVC/MVT
+- Gestion de base de données SQLite
+- Implémentation de règles métier
+- Tests automatisés avec pytest
+- Sécurisation des accès
+- Organisation d’un projet Django
+
+
 # Fonctionnalités
 
 ## Application Bibliothécaire (Staff)
@@ -94,29 +106,26 @@ Chaque fonctionnalité principale possède au moins un test :
 
 ## Exécution des tests :
 * installation de pytest-django : 
-```pip install pytest pytest-django```
+```bash
+pip install pytest pytest-django
+```
 
 * installation BeautifulSoup
-```pip install beautifulsoup4```
+```bash
+pip install beautifulsoup4
+```
 
 * lancement des tests
-```pytest```
+```bash
+pytest
+```
 
-## Informations des rôles test
-*Admin* 
-- email: admin@exemple.com
-- id: admin
-- mot de passe: Azerty.123
+# Données de démonstration
 
-*staff*
-- email: staff@email.com
-- id: staff
-- mot de passe: Azerty.123!
-
-*client*
-- email: client@exemple.com
-- id: client
-- mot de passe: Azerty!123
+Le projet inclut des données de test permettant :
+- de tester les rôles utilisateurs
+- de tester les emprunts
+- de tester les différents types de médias
 
 # Technologies utilisées
 
@@ -153,7 +162,7 @@ La base contient des données de test permettant :
 # Structure du projet
 
 Structure simplifiée du projet :
-
+```txt
 mediatheque/
 │
 ├── authentification/
@@ -177,6 +186,7 @@ mediatheque/
 │
 ├── manage.py
 └── settings.py
+```
 
 Le projet est divisé en trois applications Django principales :
 
@@ -199,31 +209,45 @@ Le design CSS sera amélioré ultérieurement par un designer web.
 
 # Installation et lancement du projet
 1️⃣ Cloner le projet
+```bash
 git clone https://github.com/USERNAME/mediatheque.git
 cd mediatheque
+```
 2️⃣ Créer un environnement virtuel
+```bash
 python -m venv venv
+```
 
 ## Activation :
 ### Windows
-
+```bash
 venv\Scripts\activate
+```
 
 ### Linux / Mac
-
+```bash
 source venv/bin/activate
+```
 
 3️⃣ Installer les dépendances
+```bash
 pip install -r requirements.txt
+```
 
 4️⃣ Appliquer les migrations
+```bash
 python manage.py migrate
+```
 
 5️⃣ Créer un administrateur
+```bash
 python manage.py createsuperuser
+```
 
 6️⃣ Lancer le serveur
+```bash
 python manage.py runserver
+```
 
 ## Accès à l’application :
 
